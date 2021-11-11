@@ -12,13 +12,11 @@ public abstract class CardBase {
     private String name;
     private final int damage;
     private ElementType elementType;
-    private CardType cardType;
 
-    public CardBase(String name, int damage, ElementType elementType, CardType cardType) {
+    public CardBase(String name, int damage, ElementType elementType) {
         this.name = name;
         this.damage = damage;
         this.elementType = elementType;
-        this.cardType = cardType;
     }
 
     public abstract FightOutcome attack(CardBase competitor);

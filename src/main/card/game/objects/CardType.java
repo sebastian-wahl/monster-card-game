@@ -1,4 +1,4 @@
-package dbobjects;
+package card.game.objects;
 
 public enum CardType {
     MONSTER,

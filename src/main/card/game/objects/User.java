@@ -1,8 +1,6 @@
-package dbobjects;
+package card.game.objects;
 
 import lombok.Data;
-
-import java.util.List;
 
 @Data
 public class User {
@@ -10,12 +8,13 @@ public class User {
     private String username;
     private String password;
     private String name;
+    private String bio;
 
 
     private int coins = 20;
 
-    private List<CardBase> stack;
-    private List<CardBase> deck;
+    private Stack stack;
+    private Deck deck;
 
     // Elo
     private int elo;

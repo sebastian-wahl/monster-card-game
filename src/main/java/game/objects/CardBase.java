@@ -2,6 +2,7 @@ package game.objects;
 
 import game.objects.enums.ElementType;
 import game.objects.enums.FightOutcome;
+import game.objects.enums.RarityEnum;
 import lombok.Data;
 
 import java.util.UUID;
@@ -18,10 +19,13 @@ public abstract class CardBase implements Comparable<CardBase> {
     private final double damage;
     private ElementType elementType;
 
-    public CardBase(String name, double damage, ElementType elementType) {
+    public final RarityEnum cardRarity;
+
+    public CardBase(String name, double damage, ElementType elementType, RarityEnum cardRarity) {
         this.name = name;
         this.damage = damage;
         this.elementType = elementType;
+        this.cardRarity = cardRarity;
     }
 
     public abstract FightOutcome attack(CardBase competitor);
@@ -66,5 +70,10 @@ public abstract class CardBase implements Comparable<CardBase> {
     @Override
     public int compareTo(CardBase anotherCards) {
         return this.name.compareTo(anotherCards.getName());
+    }
+
+    @Override
+    public String toString() {
+        return "Name: " + this.name + ", damage: " + this.damage + ", elementType: " + this.elementType.toString();
     }
 }

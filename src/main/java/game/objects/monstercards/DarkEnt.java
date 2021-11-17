@@ -5,17 +5,17 @@ import game.objects.enums.CardsEnum;
 import game.objects.enums.ElementType;
 import game.objects.enums.FightOutcome;
 
-public class FireWizard extends MonsterCard {
-    public FireWizard() {
-        super("Fire Wizard", 22, ElementType.FIRE, CardsEnum.FIRE_WIZARD.getRarity());
+public class DarkEnt extends MonsterCard {
+    public DarkEnt() {
+        super("Dark Ent", 16, ElementType.NORMAL, CardsEnum.DARK_ENT.getRarity());
     }
 
     @Override
     /*
-     * Wizard can control Orks, so they are not able to damage them.
+     * The DarkEnts have such an anger against the Orks and Knights that they immediately smash them in a fight
      */
     public FightOutcome attack(CardBase competitor) {
-        if (competitor instanceof Ork) {
+        if (competitor instanceof Ork || competitor instanceof Knight) {
             return FightOutcome.ATTACKER;
         }
         return super.attack(competitor);

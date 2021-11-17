@@ -3,11 +3,12 @@ package game.objects.monstercards;
 import game.objects.CardBase;
 import game.objects.enums.ElementType;
 import game.objects.enums.FightOutcome;
+import game.objects.enums.RarityEnum;
 
 public abstract class MonsterCard extends CardBase {
 
-    protected MonsterCard(String name, double damage, ElementType elementType) {
-        super(name, damage, elementType);
+    protected MonsterCard(String name, double damage, ElementType elementType, RarityEnum cardRarity) {
+        super(name, damage, elementType, cardRarity);
     }
 
     @Override
@@ -17,8 +18,7 @@ public abstract class MonsterCard extends CardBase {
                 return FightOutcome.TIE;
             else
                 return getDamage() > competitor.getDamage() ? FightOutcome.ATTACKER : FightOutcome.DEFENDER;
-        } else {
-            return attackSpell(competitor);
         }
+        return attackSpell(competitor);
     }
 }

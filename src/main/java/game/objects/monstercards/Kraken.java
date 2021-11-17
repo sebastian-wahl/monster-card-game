@@ -1,13 +1,14 @@
 package game.objects.monstercards;
 
 import game.objects.CardBase;
+import game.objects.enums.CardsEnum;
 import game.objects.enums.ElementType;
 import game.objects.enums.FightOutcome;
 import game.objects.spellcards.SpellCard;
 
 public class Kraken extends MonsterCard {
     public Kraken() {
-        super("Kraken", 30, ElementType.WATER);
+        super("Kraken", 23, ElementType.WATER, CardsEnum.KRAKEN.getRarity());
     }
 
     @Override
@@ -17,8 +18,7 @@ public class Kraken extends MonsterCard {
     public FightOutcome attack(CardBase competitor) {
         if (competitor instanceof SpellCard) {
             return FightOutcome.ATTACKER;
-        } else {
-            return super.attack(competitor);
         }
+        return super.attack(competitor);
     }
 }

@@ -4,18 +4,19 @@ import game.objects.CardBase;
 import game.objects.enums.CardsEnum;
 import game.objects.enums.ElementType;
 import game.objects.enums.FightOutcome;
+import game.objects.spellcards.SlownessSpell;
 
-public class FireWizard extends MonsterCard {
-    public FireWizard() {
-        super("Fire Wizard", 22, ElementType.FIRE, CardsEnum.FIRE_WIZARD.getRarity());
+public class DarkBat extends MonsterCard {
+    public DarkBat() {
+        super("Dark Bat", 10, ElementType.NORMAL, CardsEnum.DARK_BAT.getRarity());
     }
 
     @Override
     /*
-     * Wizard can control Orks, so they are not able to damage them.
+     * Dark Bats are so fast that the Slowness Spell does not work on them
      */
     public FightOutcome attack(CardBase competitor) {
-        if (competitor instanceof Ork) {
+        if (competitor instanceof SlownessSpell) {
             return FightOutcome.ATTACKER;
         }
         return super.attack(competitor);

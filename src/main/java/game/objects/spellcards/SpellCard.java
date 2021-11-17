@@ -3,14 +3,20 @@ package game.objects.spellcards;
 import game.objects.CardBase;
 import game.objects.enums.ElementType;
 import game.objects.enums.FightOutcome;
+import game.objects.enums.RarityEnum;
+import game.objects.monstercards.Kraken;
+import game.objects.monstercards.WaterWitch;
 
 public abstract class SpellCard extends CardBase {
-    public SpellCard(String name, int damage, ElementType elementType) {
-        super(name, damage, elementType);
+    protected SpellCard(String name, int damage, ElementType elementType, RarityEnum cardRarity) {
+        super(name, damage, elementType, cardRarity);
     }
 
     @Override
     public FightOutcome attack(CardBase competitor) {
+        if (competitor instanceof Kraken || competitor instanceof WaterWitch) {
+            return FightOutcome.DEFENDER;
+        }
         return attackSpell(competitor);
     }
 

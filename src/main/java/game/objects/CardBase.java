@@ -30,7 +30,7 @@ public abstract class CardBase implements Comparable<CardBase> {
 
     public abstract FightOutcome attack(CardBase competitor);
 
-    public FightOutcome fightFire(CardBase competitor) {
+    protected FightOutcome fightFire(CardBase competitor) {
         return switch (getElementType()) {
             case WATER -> getFightOutcomeForDamage(getDamage() * STRENGTHEN, competitor.getDamage() * WEAKEN);
             case FIRE -> getFightOutcomeForDamage(getDamage(), competitor.getDamage());
@@ -38,7 +38,7 @@ public abstract class CardBase implements Comparable<CardBase> {
         };
     }
 
-    public FightOutcome fightWater(CardBase competitor) {
+    protected FightOutcome fightWater(CardBase competitor) {
         return switch (getElementType()) {
             case WATER -> getFightOutcomeForDamage(getDamage(), competitor.getDamage());
             case FIRE -> getFightOutcomeForDamage(getDamage() * WEAKEN, competitor.getDamage() * STRENGTHEN);
@@ -46,7 +46,7 @@ public abstract class CardBase implements Comparable<CardBase> {
         };
     }
 
-    public FightOutcome fightNormal(CardBase competitor) {
+    protected FightOutcome fightNormal(CardBase competitor) {
         return switch (getElementType()) {
             case WATER -> getFightOutcomeForDamage(getDamage() * WEAKEN, competitor.getDamage() * STRENGTHEN);
             case FIRE -> getFightOutcomeForDamage(getDamage() * STRENGTHEN, competitor.getDamage() * WEAKEN);
@@ -59,7 +59,7 @@ public abstract class CardBase implements Comparable<CardBase> {
         return damageAttacker > damageDefender ? FightOutcome.ATTACKER : FightOutcome.DEFENDER;
     }
 
-    public FightOutcome attackSpell(CardBase competitor) {
+    protected FightOutcome attackSpell(CardBase competitor) {
         return switch (competitor.getElementType()) {
             case FIRE -> fightFire(competitor);
             case WATER -> fightWater(competitor);

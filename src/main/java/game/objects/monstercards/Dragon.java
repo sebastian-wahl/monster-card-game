@@ -16,7 +16,7 @@ public class Dragon extends MonsterCard {
      * The FireElves know Dragons since they were little and can evade their attacks.
      */
     public FightOutcome attack(CardBase competitor) {
-        if (competitor instanceof Dragon) {
+        if (competitor instanceof GreyGoblin) {
             return FightOutcome.ATTACKER;
         } else if (competitor instanceof FireElf) {
             return FightOutcome.DEFENDER;

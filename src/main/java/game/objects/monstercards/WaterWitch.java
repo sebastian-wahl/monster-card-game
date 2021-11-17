@@ -18,7 +18,7 @@ public class WaterWitch extends MonsterCard {
      */
     public FightOutcome attack(CardBase competitor) {
         if (competitor instanceof SpellCard || competitor instanceof FireWizard) {
-            return FightOutcome.DEFENDER;
+            return FightOutcome.ATTACKER;
         }
         return super.attack(competitor);
     }

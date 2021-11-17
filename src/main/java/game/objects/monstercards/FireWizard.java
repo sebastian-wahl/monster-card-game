@@ -18,6 +18,9 @@ public class FireWizard extends MonsterCard {
         if (competitor instanceof Ork) {
             return FightOutcome.ATTACKER;
         }
+        if (competitor instanceof WaterWitch) {
+            return FightOutcome.DEFENDER;
+        }
         return super.attack(competitor);
     }
 }

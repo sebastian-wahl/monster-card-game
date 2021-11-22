@@ -13,7 +13,7 @@ public class Deck {
 
     public Deck(List<CardBase> cards) {
         if (cards.size() > INIT_MAX_DECK_SIZE) {
-            deck = new ArrayList<>(cards.subList(0, 3));
+            deck = new ArrayList<>(cards.subList(0, 4));
         } else {
             deck = cards;
         }

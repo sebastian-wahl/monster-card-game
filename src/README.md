@@ -42,4 +42,18 @@ Insgesamt habe ich etwas mehr als xx Stunden gebraucht das Spiel zu entwickeln.
 
 ## Implementierung
 
+Begonnen habe ich mit der Implementierung/Erstellung der Card Klassen. Dabei habe ich zuerst eine abstrakte Base Klasse
+(`CardBase`) erstellt mit den Attributen die bei allen Karten gleich sind. Danach habe ich jeweils für die Arten der
+Karten eine Subklasse erstellt, ebenfalls abstrakt. Eine Klasse `SpellCard` und eine Klasse `MonsterCard`. Die
+Kampflogik schlängelt sich durch alle Klassen durch. Die Basislogik ist in der `CardBase` Klasse implementiert und bei
+gewissen "specialities" (`Knight` drowns when hit with `WaterSpell`, usw...) wurde die `attack` Methode in den
+jeweiligen Klassen überschrieben.
+
+Dann habe ich zu dieser `attack` Methode einige Tests geschrieben, um die Funktionalität zu überprüfen.
+
+Anschließend habe ich eine `CardFactory` erstellt die das Instanziierung der Card Objekte übernimmt. Diese Funktion habe
+ich in der `Package` Klasse dann verwendet um zufällig in Abhängigkeit von der Seltenheit der Karte (see `CardsEnum`
+and `RarityEnum`)
+5 Karten zu generieren.
+
 ## Lessons Learned

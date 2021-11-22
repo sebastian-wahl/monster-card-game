@@ -33,7 +33,7 @@ public class ClientGameRunner implements Runnable {
     public Response pickController(Request request) {
         PathEnum path = PathEnum.BATTLE;
         ControllerBase controller = switch (path) {
-            case BATTLE -> new BattleController(battleQueue);
+            case BATTLE -> new BattleController(battleQueue, null);
             default -> throw new IllegalArgumentException("Invalid path: " + path);
         };
         return new ConcreteResponse();

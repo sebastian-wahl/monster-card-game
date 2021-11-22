@@ -3,40 +3,41 @@ package game.controller;
 import game.objects.CardBase;
 import game.objects.Deck;
 import game.objects.enums.FightOutcome;
-import game.objects.monstercards.FireElf;
-import game.objects.monstercards.GreyGoblin;
-import game.objects.monstercards.Knight;
-import game.objects.monstercards.Ork;
-import game.objects.spellcards.DarkSpell;
-import game.objects.spellcards.FireSpell;
-import game.objects.spellcards.WaterSpell;
+import game.objects.exceptions.DeckNotFoundException;
+import game.repository.DeckRepository;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 
 public class BattleController extends ControllerBase {
-    public BattleController(BlockingQueue<String> battleQueue) {
+    private DeckRepository deckRepository;
+
+    public BattleController(BlockingQueue<String> battleQueue, DeckRepository deckRepository) {
         super(battleQueue);
+        this.deckRepository = deckRepository;
     }
 
-    public void handleBattle() {
+    public String handleBattle() throws DeckNotFoundException {
         List<String> players = new ArrayList<>(Arrays.asList(battleQueue.poll(), battleQueue.poll()));
-        List<CardBase> deck1 = new ArrayList<>();
-        deck1.add(new FireElf());
-        deck1.add(new GreyGoblin());
-        deck1.add(new Ork());
-        deck1.add(new FireSpell());
 
-        List<CardBase> deck2 = new ArrayList<>();
-        deck2.add(new Knight());
-        deck2.add(new Ork());
-        deck2.add(new DarkSpell());
-        deck2.add(new WaterSpell());
+        Deck playerOneDeck;
+        Optional<Deck> playerOneOpt = deckRepository.getDeckByUsername(players.get(0));
+        if (playerOneOpt.isPresent()) {
+            playerOneDeck = playerOneOpt.get();
+        } else {
+            throw new DeckNotFoundException(players.get(0));
+        }
 
-        Deck playerOneDeck = new Deck(deck1);
-        Deck playerTwoDeck = new Deck(deck2);
+        Deck playerTwoDeck;
+        Optional<Deck> playerTwoOpt = deckRepository.getDeckByUsername(players.get(1));
+        if (playerTwoOpt.isPresent()) {
+            playerTwoDeck = playerTwoOpt.get();
+        } else {
+            throw new DeckNotFoundException(players.get(1));
+        }
 
         StringBuilder log = new StringBuilder();
         log.append("Starting battle between ").append(players.get(0)).append(" and ").append(players.get(1)).append(":");
@@ -84,9 +85,9 @@ public class BattleController extends ControllerBase {
 
         battleQueue.clear();
 
-        printLog(log);
+        //printLog(log);
         // ToDo send response with log
-
+        return log.toString();
     }
 
     private void updateScore(String winningPlayer, String loosingPlayer) {

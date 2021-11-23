@@ -10,16 +10,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.stubbing.Answer;
 
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 
@@ -58,33 +58,27 @@ class BattleControllerTest {
 
     @BeforeEach
     void setUp() {
-        when(deckRepository.getDeckByUsername(anyString())).thenAnswer(new Answer<Optional<Deck>>() {
-            @Override
-            public Optional<Deck> answer(InvocationOnMock invocationOnMock) {
-                if (USERNAME_1.equals(invocationOnMock.getArgument(0))) {
-                    return Optional.of(user1Deck);
-                } else if (USERNAME_2.equals(invocationOnMock.getArgument(0))) {
-                    return Optional.of(user2Deck);
-                }
-                return Optional.empty();
-            }
-        });
-
+        lenient().when(deckRepository.getDeckByUsername(USERNAME_1)).thenReturn(Optional.of(user1Deck));
+        lenient().when(deckRepository.getDeckByUsername(USERNAME_2)).thenReturn(Optional.of(user2Deck));
+        lenient().when(deckRepository.getDeckByUsername(USERNAME_3)).thenReturn(Optional.empty());
         this.battleController = new BattleController(battleQueue, deckRepository);
     }
 
     @Test
-    void testHandleBattle() throws DeckNotFoundException {
+    void testHandleBattle() {
         this.setUpBattleQueue(USERNAME_1, USERNAME_2);
-        this.battleController.handleBattle();
+        assertDoesNotThrow(() -> this.battleController.handleBattle());
     }
 
     @Test
     void testHandleBattleExpectDeckNotFoundException() {
-        assertThrows(DeckNotFoundException.class, () -> {
+
+        DeckNotFoundException ex = assertThrows(DeckNotFoundException.class, () -> {
             this.setUpBattleQueue(USERNAME_1, USERNAME_3);
+
             this.battleController.handleBattle();
         });
+        assertThat(ex).hasMessageContaining(USERNAME_3);
     }
 
 

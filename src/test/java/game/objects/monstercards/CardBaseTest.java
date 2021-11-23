@@ -12,45 +12,43 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.AbstractMap;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class MonsterCardTest {
-
-
-    private AbstractMap.SimpleImmutableEntry<CardBase, CardBase> createCardPair(CardBase card1, CardBase card2) {
-        return new AbstractMap.SimpleImmutableEntry<>(card1, card2);
-    }
-
+class CardBaseTest {
+    // winner, loser
     private static Stream<Arguments> provideMonstersMonsterFight() {
         return Stream.of(
-                Arguments.of(new DarkBat(), new DarkEnt()),
+                Arguments.of(new DarkEnt(), new DarkBat()),
                 Arguments.of(new Dragon(), new Ork()),
-                Arguments.of(new FireElf(), new Knight()),
+                Arguments.of(new Knight(), new FireElf()),
                 Arguments.of(new Dragon(), new WaterWitch())
         );
     }
 
     @ParameterizedTest(name = "{0} VS {1}")
-    @DisplayName("Test if monster fight work")
+    @DisplayName("Test if monster fights work")
     @MethodSource("provideMonstersMonsterFight")
-    void attackTestMonsterFights(CardBase card1, CardBase card2) {
-        FightOutcome fo = card1.attack(card2);
-        if (card1.getDamage() > card2.getDamage()) {
-            assertThat(fo).isEqualTo(FightOutcome.ATTACKER);
-            fo = card2.attack(card1);
-            assertThat(fo).isEqualTo(FightOutcome.DEFENDER);
-        } else if (card1.getDamage() == card2.getDamage()) {
-            assertThat(fo).isEqualTo(FightOutcome.TIE);
-            fo = card2.attack(card1);
-            assertThat(fo).isEqualTo(FightOutcome.TIE);
-        } else {
-            assertThat(fo).isEqualTo(FightOutcome.DEFENDER);
-            fo = card2.attack(card1);
-            assertThat(fo).isEqualTo(FightOutcome.ATTACKER);
-        }
+    void attackTestMonsterFights(CardBase winner, CardBase loser) {
+        FightOutcome fo = winner.attack(loser);
+        assertThat(fo).isEqualTo(FightOutcome.ATTACKER);
+        fo = loser.attack(winner);
+        assertThat(fo).isEqualTo(FightOutcome.DEFENDER);
+    }
+
+    @Test
+    void attackTestMonsterFightsTie() {
+        CardBase card1 = new Dragon();
+        CardBase card2 = new Dragon();
+        assertThat(card1.attack(card2)).isEqualTo(FightOutcome.TIE);
+    }
+
+    @Test
+    void attackTestSpellFightsTie() {
+        CardBase card1 = new FireSpell();
+        CardBase card2 = new FireSpell();
+        assertThat(card1.attack(card2)).isEqualTo(FightOutcome.TIE);
     }
 
     @Test
@@ -99,11 +97,11 @@ class MonsterCardTest {
     @ParameterizedTest(name = "{0} VS {1}")
     @DisplayName("Test if monster specifications work")
     @MethodSource("provideMonstersForSpecifications")
-    void attackTestMonsterSpecifications(CardBase card1, CardBase card2) {
+    void attackTestMonsterSpecifications(CardBase winner, CardBase loser) {
         // Card1 is always the winner
-        FightOutcome fo = card1.attack(card2);
+        FightOutcome fo = winner.attack(loser);
         assertThat(fo).isEqualTo(FightOutcome.ATTACKER);
-        fo = card2.attack(card1);
+        fo = loser.attack(winner);
         assertThat(fo).isEqualTo(FightOutcome.DEFENDER);
     }
 }

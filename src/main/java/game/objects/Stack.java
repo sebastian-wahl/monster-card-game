@@ -13,4 +13,8 @@ public class Stack {
     public void addPackageToStack(Package p) {
         this.stack.addAll(p.cards);
     }
+
+    public void removeCardForTrade() {
+
+    }
 }

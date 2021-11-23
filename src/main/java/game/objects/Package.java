@@ -20,7 +20,6 @@ public class Package {
 
     public Package() {
         cards = this.generateCardList();
-        // ToDo
     }
 
     /**

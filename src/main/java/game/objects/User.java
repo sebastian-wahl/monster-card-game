@@ -1,19 +1,30 @@
 package game.objects;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@AllArgsConstructor
 public class User {
 
+    @Getter
     private String username;
+    @Getter
     private String password;
+    @Getter
+    @Setter
     private String displayName;
+    @Getter
+    @Setter
     private String bio;
 
 
-    private int coins = 20;
+    @Getter
+    private int coins;
 
+    @Getter
     private Stack stack;
+    @Getter
     private Deck deck;
 
     // Elo
@@ -21,4 +32,12 @@ public class User {
 
     // security
     private String token;
+
+    public void buyPackage() {
+        if (coins - Package.PACKAGE_COST >= 0) {
+            this.stack.addPackageToStack(new Package());
+        } else {
+            // Not enough coins
+        }
+    }
 }

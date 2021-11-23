@@ -1,8 +1,7 @@
 package game.objects.enums;
 
 /**
- * Enum for all game cards combined with a rarity
- * Rarity:
+ * Enum for all game cards combined with a rarity:
  * ~ 0 - 60: common
  * ~ 61 - 79: slightly rare
  * ~ 80 - 89: moderately rare

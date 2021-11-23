@@ -1,6 +1,7 @@
 package game.objects;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -11,7 +12,15 @@ public class Deck {
     // Deck init size = max 4 cards
     public static final int INIT_MAX_DECK_SIZE = 4;
 
+    public Deck() {
+        this(Collections.emptyList());
+    }
+
     public Deck(List<CardBase> cards) {
+        this.setDeck(cards);
+    }
+
+    public void setDeck(List<CardBase> cards) {
         if (cards.size() > INIT_MAX_DECK_SIZE) {
             deck = new ArrayList<>(cards.subList(0, 4));
         } else {

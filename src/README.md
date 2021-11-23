@@ -53,7 +53,6 @@ Dann habe ich zu dieser `attack` Methode einige Tests geschrieben, um die Funkti
 
 Anschließend habe ich eine `CardFactory` erstellt die das Instanziierung der Card Objekte übernimmt. Diese Funktion habe
 ich in der `Package` Klasse dann verwendet um zufällig in Abhängigkeit von der Seltenheit der Karte (see `CardsEnum`
-and `RarityEnum`)
-5 Karten zu generieren.
+and `RarityEnum`) 5 Karten zu generieren.
 
 ## Lessons Learned

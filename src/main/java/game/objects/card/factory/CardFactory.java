@@ -6,9 +6,6 @@ import game.objects.exceptions.CardNotFoundException;
 import game.objects.monstercards.*;
 import game.objects.spellcards.*;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * Class for Card creation
  */
@@ -16,25 +13,6 @@ public class CardFactory {
     // hide constructor
     private CardFactory() {
     }
-
-    public static final List<CardsEnum> CARD_LIST = Arrays.asList(
-            // Monstercards
-            CardsEnum.DRAGON,
-            CardsEnum.FIRE_ELF,
-            CardsEnum.FIRE_WIZARD,
-            CardsEnum.GREY_GOBLIN,
-            CardsEnum.KNIGHT,
-            CardsEnum.KRAKEN,
-            CardsEnum.ORK,
-            CardsEnum.DARK_BAT,
-            CardsEnum.DARK_ENT,
-            // Spellcards
-            CardsEnum.DARK_SPELL,
-            CardsEnum.FIRE_SPELL,
-            CardsEnum.WATER_SPELL,
-            CardsEnum.SLOWNESS_SPELL,
-            CardsEnum.SPEED_SPELL
-    );
 
     public static CardBase createCard(CardsEnum toCreate) {
         // Monstercards

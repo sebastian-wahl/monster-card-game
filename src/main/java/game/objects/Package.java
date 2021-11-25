@@ -4,10 +4,7 @@ import game.objects.card.factory.CardFactory;
 import game.objects.enums.CardsEnum;
 import game.objects.enums.RarityEnum;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -34,7 +31,7 @@ public class Package {
         for (int i = 0; i < PACKAGE_SIZE; i++) {
             int rarity = rand.nextInt(RarityEnum.MAX_RARITY + 1);
             // filter cards for rarity
-            List<CardsEnum> cardsForRarity = CardFactory.CARD_LIST.stream()
+            List<CardsEnum> cardsForRarity = Arrays.stream(CardsEnum.values())
                     .filter(cardsEnum -> cardsEnum.getRarity().getRarityStart() <= rarity && rarity <= cardsEnum.getRarity().getRarityEnd())
                     .collect(Collectors.toList());
             // Create card and add to list

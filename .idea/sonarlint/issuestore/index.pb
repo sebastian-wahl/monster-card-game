@@ -1,20 +1,8 @@
 
 U
 %src/main/java/game/objects/Trade.java,e\a\ea42f5dc315efe2c4da16b9739c39165235f0f85
-b
-2src/main/java/game/objects/enums/FightOutcome.java,5\4\5487455643d39980b4fe8b96574fa733025b34cc
 a
 1src/main/java/game/controller/ControllerBase.java,8\5\854caa339547a7929b7dd477b364c45d51cb7edd
-\
-,src/main/java/game/http/request/Request.java,5\a\5a9b6dbf49fedea17471bbd07d3501a5f431f5ad
-^
-.src/main/java/game/http/response/Response.java,d\1\d1892cbbc8de673a1ef4b2b2e0cbfc5735719384
-f
-6src/main/java/game/http/response/ConcreteResponse.java,a\0\a060d9063d230f80973827d2ee6e8cc17a15e5f3
-d
-4src/main/java/game/http/request/ConcreteRequest.java,6\0\6088dbc454e8c4c1ed7ac9f6332e87529bbbd0b5
-Y
-)src/main/java/game/http/URL/PathEnum.java,6\2\624bc8462b3859a983a69190b99eeee235f485df
 d
 4src/main/java/game/objects/spellcards/FireSpell.java,f\4\f40f458076dfc6ddf47a3fc78a4e29857f75b10d
 h

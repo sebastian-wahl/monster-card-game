@@ -2,10 +2,11 @@ package game.server;
 
 import game.controller.BattleController;
 import game.controller.ControllerBase;
-import game.http.URL.PathEnum;
+import game.http.request.ConcreteRequest;
 import game.http.request.Request;
 import game.http.response.ConcreteResponse;
 import game.http.response.Response;
+import game.http.url.PathEnum;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -23,6 +24,9 @@ public class ClientGameRunner implements Runnable {
     @Override
     public void run() {
         try {
+            Request request = new ConcreteRequest(clientSocket.getInputStream());
+            Response response = pickController(request);
+            response.send(clientSocket.getOutputStream());
             clientSocket.close();
         } catch (IOException e) {
             e.printStackTrace();

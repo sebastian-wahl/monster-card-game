@@ -1,4 +1,4 @@
-package game.http.URL;
+package game.http.url;
 
 public enum PathEnum {
     BATTLE("battle"),

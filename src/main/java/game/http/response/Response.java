@@ -1,10 +1,12 @@
 package game.http.response;
 
+import game.http.HttpReady;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
-public interface Response {
+public interface Response extends HttpReady {
     /**
      * @return Returns a writable map of the response headers. Never returns
      * null.
@@ -30,7 +32,7 @@ public interface Response {
     void setContentType(String contentType);
 
     /**
-     * @return Gets the current status code. An Exceptions is thrown, if no status code was set.
+     * @return Gets the current status code
      */
     int getStatusCode();
 
@@ -53,7 +55,7 @@ public interface Response {
     void addHeader(String header, String value);
 
     /**
-     * @return Returns the Server response header. Defaults to "BIF-SWE1-Server".
+     * @return Returns the Server response header. Default "MonsterCardGame-Server"
      */
     String getServerHeader();
 
@@ -80,7 +82,7 @@ public interface Response {
     void setContent(InputStream stream);
 
     /**
-     * @param network Sends the response to the network stream.
+     * @param outputStream Sends the response to the stream.
      */
-    void send(OutputStream network);
+    void send(OutputStream outputStream);
 }

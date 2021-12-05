@@ -1,5 +1,7 @@
 package game.controller;
 
+import game.http.request.Request;
+import game.http.response.ConcreteResponse;
 import game.objects.CardBase;
 import game.objects.Deck;
 import game.objects.enums.FightOutcome;
@@ -15,13 +17,37 @@ import java.util.concurrent.BlockingQueue;
 public class BattleController extends ControllerBase {
     private DeckRepository deckRepository;
 
-    public BattleController(BlockingQueue<String> battleQueue, DeckRepository deckRepository) {
-        super(battleQueue);
+    public BattleController(BlockingQueue<String> battleQueue, Request request) {
+        this(battleQueue, request, new DeckRepository());
+    }
+
+    public BattleController(BlockingQueue<String> battleQueue, Request request, DeckRepository deckRepository) {
+        super(battleQueue, request);
         this.deckRepository = deckRepository;
+
+        try {
+            this.handleBattle();
+        } catch (DeckNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public ConcreteResponse doWork() {
+        try {
+            this.queue.add(this.userRequest.getContent().get(Request.USERNAME_KEY));
+            while (this.queue.size() < 2) {
+
+            }
+            this.handleBattle();
+        } catch (DeckNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public String handleBattle() throws DeckNotFoundException {
-        List<String> players = new ArrayList<>(Arrays.asList(battleQueue.poll(), battleQueue.poll()));
+        List<String> players = new ArrayList<>(Arrays.asList(queue.poll(), queue.poll()));
 
         Deck playerOneDeck;
         Optional<Deck> playerOneOpt = deckRepository.getDeckByUsername(players.get(0));
@@ -83,9 +109,9 @@ public class BattleController extends ControllerBase {
             updateScoreTie(players);
         }
 
-        battleQueue.clear();
+        queue.clear();
 
-        //printLog(log);
+        // printLog(log);
         // ToDo send response with log
         return log.toString();
     }

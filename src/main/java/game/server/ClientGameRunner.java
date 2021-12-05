@@ -1,10 +1,10 @@
 package game.server;
 
+import game.controller.AddUserController;
 import game.controller.BattleController;
 import game.controller.ControllerBase;
 import game.http.request.ConcreteRequest;
 import game.http.request.Request;
-import game.http.response.ConcreteResponse;
 import game.http.response.Response;
 import game.http.url.PathEnum;
 
@@ -35,11 +35,12 @@ public class ClientGameRunner implements Runnable {
     }
 
     public Response pickController(Request request) {
-        PathEnum path = PathEnum.BATTLE;
+        PathEnum path = request.getUrl().getUrlPath();
         ControllerBase controller = switch (path) {
-            case BATTLE -> new BattleController(battleQueue, null);
-            default -> throw new IllegalArgumentException("Invalid path: " + path);
+            case USERS -> new AddUserController(battleQueue, request);
+            case BATTLE -> new BattleController(battleQueue, request);
+            case NOMATCH -> throw new IllegalArgumentException("Invalid path: " + path);
         };
-        return new ConcreteResponse();
+        return controller.doWork();
     }
 }

@@ -61,7 +61,8 @@ class BattleControllerTest {
         lenient().when(deckRepository.getDeckByUsername(USERNAME_1)).thenReturn(Optional.of(user1Deck));
         lenient().when(deckRepository.getDeckByUsername(USERNAME_2)).thenReturn(Optional.of(user2Deck));
         lenient().when(deckRepository.getDeckByUsername(USERNAME_3)).thenReturn(Optional.empty());
-        this.battleController = new BattleController(battleQueue, deckRepository);
+        // empty request since the battle controller just needs the battleQueue
+        this.battleController = new BattleController(battleQueue, null, deckRepository);
     }
 
     @Test

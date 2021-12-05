@@ -1,5 +1,8 @@
 package game.http.request;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import game.http.HttpMethod;
 import game.http.url.ConcreteUrl;
 import game.http.url.Url;
@@ -22,7 +25,7 @@ public class ConcreteRequest implements Request {
     private Url url;
     @Getter
     private Map<String, String> headers;
-    private String body;
+    private Map<String, String> body;
 
 
     public ConcreteRequest() {
@@ -31,11 +34,11 @@ public class ConcreteRequest implements Request {
 
 
     public ConcreteRequest(InputStream inputStream) {
-        try (BufferedReader input = new BufferedReader(new InputStreamReader(inputStream))) {
+        try {
+            BufferedReader input = new BufferedReader(new InputStreamReader(inputStream));
             String firstLine = input.readLine();
             method = readHttpMethod(firstLine).orElse(HttpMethod.EMPTY);
             url = readUrl(firstLine);
-
             headers = readHttpHeader(input);
             body = readBody(input, getContentLength());
         } catch (IOException ex) {
@@ -46,21 +49,19 @@ public class ConcreteRequest implements Request {
 
     private Map<String, String> readHttpHeader(BufferedReader streamReader) {
         String line;
-        Map<String, String> headers = new HashMap<>();
+        Map<String, String> headersOut = new HashMap<>();
         try {
             while ((line = streamReader.readLine()) != null) {
                 if (line.isBlank()) break;//Stop loop when end of header is reached
-                if (!line.matches(".+:.+")) {
-                    System.out.println(line);
-                    continue;//Skip this Line if it doesnt match the regex
-                }
+
                 String[] headerSegments = line.split(":");
-                headers.put(headerSegments[0].toLowerCase(), headerSegments[1].trim());
+                // .toLowerCase() for simplicity
+                headersOut.put(headerSegments[0].toLowerCase(), headerSegments[1].trim());
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return headers;
+        return headersOut;
     }
 
     private Optional<HttpMethod> readHttpMethod(String line) {
@@ -84,24 +85,22 @@ public class ConcreteRequest implements Request {
         return null;
     }
 
-    private String readBody(BufferedReader streamReader, int contentLength) {
+    private Map<String, String> readBody(BufferedReader streamReader, int contentLength) {
         if (contentLength == 0)
-            return "";
-        StringBuilder body = new StringBuilder(10000);
-        char[] buffer = new char[1024];
-        int length = 0;
-        int bufferLength;
+            return Map.of();
+
+        StringBuilder bodyString = new StringBuilder();
+        char[] content = new char[contentLength];
         try {
-            while ((bufferLength = streamReader.read(buffer)) != -1) {
-                body.append(buffer, 0, bufferLength);
-                length += bufferLength;
-                if (length >= contentLength)
-                    break;
+            if (streamReader.read(content) != -1) {
+                // succ
+                bodyString.append(content);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return body.toString();
+
+        return this.getStringAsMap(bodyString.toString());
     }
 
     @Override
@@ -116,37 +115,59 @@ public class ConcreteRequest implements Request {
 
     @Override
     public String getUserAgent() {
-        return headers.getOrDefault("user-agent", null);
+        return headers.getOrDefault(USERNAME_KEY, null);
     }
 
     @Override
     public int getContentLength() {
-        if (headers.containsKey("content-length"))
-            return Integer.parseInt(headers.get("content-length"));
+        if (headers.containsKey(CONTENT_LENGTH_KEY))
+            return Integer.parseInt(headers.get(CONTENT_LENGTH_KEY));
         return 0;
     }
 
     @Override
     public String getContentType() {
-        return headers.getOrDefault("content-type", null);
+        return headers.getOrDefault(CONTENT_TYPE_KEY, null);
     }
 
     @Override
     public InputStream getContentStream() {
-        return new ByteArrayInputStream(getContentString().getBytes(StandardCharsets.UTF_8));
+        return new ByteArrayInputStream(this.getContentBytes());
     }
 
     @Override
-    public String getContentString() {
+    public Map<String, String> getContent() {
         return this.body;
+    }
+
+    private String getMapAsString(Map<String, String> map) {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        String mapAsString = "";
+        try {
+            mapAsString = objectMapper.writeValueAsString(map);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return mapAsString;
+    }
+
+    private Map<String, String> getStringAsMap(String jsonString) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> map;
+        try {
+            // convert JSON string to Map
+            map = objectMapper.readValue(jsonString, new TypeReference<Map<String, String>>() {
+            });
+        } catch (IOException e) {
+            // Did not work, content no json -> map should stay empty
+            map = Map.of();
+        }
+        return map;
     }
 
     @Override
     public byte[] getContentBytes() {
-        return this.body.getBytes(StandardCharsets.UTF_8);
-    }
-
-    public void addToHeader(String name, String value) {
-        this.headers.put(name, value);
+        return this.getMapAsString(this.body).getBytes(StandardCharsets.UTF_8);
     }
 }

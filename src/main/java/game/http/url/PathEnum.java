@@ -2,7 +2,7 @@ package game.http.url;
 
 public enum PathEnum {
     BATTLE("battle"),
-    USER("user"),
+    USERS("users"),
     // ToDo add other paths
     // no match
     NOMATCH(null);

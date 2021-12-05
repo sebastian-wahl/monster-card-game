@@ -2,12 +2,13 @@ package game.http.request;
 
 
 import game.http.HttpMethod;
+import game.http.HttpReady;
 import game.http.url.Url;
 
 import java.io.InputStream;
 import java.util.Map;
 
-public interface Request {
+public interface Request extends HttpReady {
     /**
      * @return Returns true if the request is valid. A request is valid, if
      * method and url could be parsed. A header is not necessary.
@@ -59,10 +60,10 @@ public interface Request {
     InputStream getContentStream();
 
     /**
-     * @return Returns the request content (body) as string or null if there is
+     * @return Returns the request content (body) as s string map or empty map if there is
      * no content.
      */
-    String getContentString();
+    Map<String, String> getContent();
 
     /**
      * @return Returns the request content (body) as byte[] or null if there is

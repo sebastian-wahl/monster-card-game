@@ -4,9 +4,16 @@ import game.objects.Deck;
 
 import java.util.Optional;
 
-public class DeckRepository {
+public class DeckRepository extends RepositoryBase {
+
+
+    public DeckRepository() {
+        super();
+    }
+
     public Optional<Deck> getDeckByUsername(String username) {
-        // ToDo create database
+        if (this.dbConnection != null) {
+        }
         return Optional.empty();
     }
 }

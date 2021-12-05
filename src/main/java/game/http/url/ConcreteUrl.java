@@ -6,10 +6,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class ConcreteUrl implements Url {
-    @Getter
     private String url;
     @Getter
-    private String urlPath;
+    private PathEnum urlPath;
     @Getter
     private List<String> urlSegments;
     @Getter
@@ -34,14 +33,22 @@ public class ConcreteUrl implements Url {
     public void splitUrl(String url) {
         if (url.contains("?")) {
             String[] urlPathParams = url.split("\\?");
-            urlPath = urlPathParams[0];
+            urlPath = this.getPathEnumFromString(urlPathParams[0].substring(1));
             readUrlSegments(urlPathParams[0]);
             readUrlParams(urlPathParams[1]);
         } else {
-            urlPath = url;
+            urlPath = this.getPathEnumFromString(url.substring(1));
             readUrlSegments(url);
         }
         readUrlFileName(urlSegments);
+    }
+
+    private PathEnum getPathEnumFromString(String path) {
+        try {
+            return PathEnum.valueOf(path.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            return PathEnum.NOMATCH;
+        }
     }
 
     public void readUrlSegments(String urlPath) {
@@ -67,7 +74,7 @@ public class ConcreteUrl implements Url {
 
     @Override
     public String getRawUrl() {
-        return null;
+        return this.url;
     }
 
 

@@ -1,6 +1,7 @@
 package game.http.response;
 
 import game.http.HttpReady;
+import game.http.enums.StatusCodeEnum;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -23,6 +24,8 @@ public interface Response extends HttpReady {
      */
     String getContentType();
 
+    String getContent();
+
     /**
      * @param contentType Sets the content type of the response.
      * @throws IllegalStateException A specialized implementation may throw a
@@ -42,9 +45,14 @@ public interface Response extends HttpReady {
     void setStatusCode(int status);
 
     /**
+     * @param status Sets the current status code.
+     */
+    void setStatus(StatusCodeEnum status);
+
+    /**
      * @return Returns the status code as string. (200 OK)
      */
-    String getStatus();
+    StatusCodeEnum getStatus();
 
     /**
      * Adds or replaces a response header in the headers map

@@ -1,4 +1,4 @@
-package game.objects.exceptions.http;
+package game.http.exceptions;
 
 public class UnsupportedHttpMethod extends RuntimeException {
     public UnsupportedHttpMethod(String methode) {

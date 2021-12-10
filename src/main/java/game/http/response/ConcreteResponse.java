@@ -1,6 +1,6 @@
 package game.http.response;
 
-import game.http.StatusCodeHelper;
+import game.http.enums.StatusCodeEnum;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,6 +10,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
+import static game.http.enums.StatusCodeEnum.SC_204;
+import static game.http.enums.StatusCodeEnum.SC_500;
 import static game.server.Server.DEFAUlT_SERVER_NAME;
 
 public class ConcreteResponse implements Response {
@@ -17,10 +19,8 @@ public class ConcreteResponse implements Response {
     @Getter
     private Map<String, String> headers;
     @Getter
-    private String status;
-    @Getter
     @Setter
-    private int statusCode;
+    private StatusCodeEnum status;
     @Getter
     private String content;
 
@@ -49,6 +49,21 @@ public class ConcreteResponse implements Response {
     }
 
     @Override
+    public int getStatusCode() {
+        return this.status.toInt();
+    }
+
+    @Override
+    public void setStatusCode(int status) {
+        try {
+            this.status = StatusCodeEnum.valueOf("SC_" + status);
+        } catch (IllegalArgumentException ex) {
+            // Internal Error
+            this.status = SC_500;
+        }
+    }
+
+    @Override
     public void addHeader(String header, String value) {
         this.headers.put(header, value);
     }
@@ -73,7 +88,7 @@ public class ConcreteResponse implements Response {
             setContentType(CONTENT_TYPE_TEXT_PLAIN);
         }
         if (this.content.equals(""))
-            setStatus(204);
+            setStatus(SC_204);
     }
 
     @Override
@@ -85,7 +100,7 @@ public class ConcreteResponse implements Response {
             setContentType(CONTENT_TYPE_TEXT_PLAIN);
         }
         if (this.content.equals(""))
-            setStatus(204);
+            setStatus(SC_204);
     }
 
     @Override
@@ -106,12 +121,7 @@ public class ConcreteResponse implements Response {
             e.printStackTrace();
         }
         if (content.equals(""))
-            setStatus(204);
-    }
-
-    public void setStatus(int statusCode) {
-        String statusString = StatusCodeHelper.getStringStatusFromCode(statusCode);
-        status = statusCode + " " + statusString;
+            setStatus(SC_204);
     }
 
     @Override
@@ -133,11 +143,13 @@ public class ConcreteResponse implements Response {
      */
     public String buildResponse() {
         StringBuilder response = new StringBuilder();
-        response.append("HTTP-Version = HTTP/1.1 ").append(status).append("\n");
+        response.append("HTTP-Version = HTTP/1.1 ").append(status.toString()).append("\n");
         if (!headers.isEmpty())
             headers.forEach((k, v) -> response.append(k).append(": ").append(v).append("\n"));
-        response.append("\n");
-        response.append(content);
+        if (content != null && !content.isEmpty()) {
+            response.append("\n");
+            response.append(content);
+        }
         return response.toString();
     }
 }

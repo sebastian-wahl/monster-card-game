@@ -2,6 +2,7 @@ package game.controller;
 
 import game.http.request.Request;
 import game.http.response.ConcreteResponse;
+import game.http.response.Response;
 import game.objects.CardBase;
 import game.objects.Deck;
 import game.objects.enums.FightOutcome;
@@ -14,8 +15,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 
+import static game.http.HttpReady.USERNAME_KEY;
+import static game.http.enums.StatusCodeEnum.SC_400;
+import static game.http.enums.StatusCodeEnum.SC_500;
+
 public class BattleController extends ControllerBase {
-    private DeckRepository deckRepository;
+    private final DeckRepository deckRepository;
 
     public BattleController(BlockingQueue<String> battleQueue, Request request) {
         this(battleQueue, request, new DeckRepository());
@@ -33,17 +38,22 @@ public class BattleController extends ControllerBase {
     }
 
     @Override
-    public ConcreteResponse doWork() {
+    public Response doWork() {
+        Response response = new ConcreteResponse();
         try {
-            this.queue.add(this.userRequest.getContent().get(Request.USERNAME_KEY));
+            this.queue.add(this.userRequest.getContent().get(USERNAME_KEY));
             while (this.queue.size() < 2) {
-
+                Thread.sleep(1000);
             }
             this.handleBattle();
         } catch (DeckNotFoundException e) {
-            e.printStackTrace();
+            response.setStatus(SC_400);
+            response.setContent(e.getMessage());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            response.setStatus(SC_500);
         }
-        return null;
+        return response;
     }
 
     public String handleBattle() throws DeckNotFoundException {

@@ -3,6 +3,7 @@ package game.server;
 import game.controller.AddUserController;
 import game.controller.BattleController;
 import game.controller.ControllerBase;
+import game.controller.LoginUserController;
 import game.http.request.ConcreteRequest;
 import game.http.request.Request;
 import game.http.response.Response;
@@ -29,7 +30,6 @@ public class ClientGameRunner implements Runnable {
             response.send(clientSocket.getOutputStream());
             clientSocket.close();
         } catch (IOException e) {
-            e.printStackTrace();
         }
 
     }
@@ -38,7 +38,14 @@ public class ClientGameRunner implements Runnable {
         PathEnum path = request.getUrl().getUrlPath();
         ControllerBase controller = switch (path) {
             case USERS -> new AddUserController(battleQueue, request);
-            case BATTLE -> new BattleController(battleQueue, request);
+            case BATTLES -> new BattleController(battleQueue, request);
+            case SESSIONS -> new LoginUserController(battleQueue, request);
+            case PACKAGES -> new LoginUserController(battleQueue, request);
+            case CARDS -> new LoginUserController(battleQueue, request);
+            case DECK -> new LoginUserController(battleQueue, request);
+            case STATS -> new LoginUserController(battleQueue, request);
+            case SCORE -> new LoginUserController(battleQueue, request);
+            case TRADINGS -> new LoginUserController(battleQueue, request);
             case NOMATCH -> throw new IllegalArgumentException("Invalid path: " + path);
         };
         return controller.doWork();

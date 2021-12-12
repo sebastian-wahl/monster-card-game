@@ -19,11 +19,3 @@ K
 MonsterTradingCardsGame.iml,0\d\0d5dfdcc58abfa9d88b704efd58dadc23d899c47
 7
 pom.xml,4\4\442292b8a7efeabbe4cc176709b833b1792140ec
-\
-,src/main/java/game/http/request/Request.java,5\a\5a9b6dbf49fedea17471bbd07d3501a5f431f5ad
-a
-1src/main/java/game/controller/ControllerBase.java,8\5\854caa339547a7929b7dd477b364c45d51cb7edd
-]
--src/main/java/game/http/StatusCodeHelper.java,f\e\fe5bee9fbf7d99311a7d9187fd4972cbb0e9f8ec
-U
-%src/main/java/game/server/Server.java,3\b\3bf28edadac119a8109221ae2afc5be74b364330

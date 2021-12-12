@@ -1,11 +1,12 @@
-package game.controller;
+package game.controller.usercontroller;
 
+import game.controller.ControllerBase;
 import game.http.request.Request;
 import game.http.response.ConcreteResponse;
 import game.http.response.Response;
 import game.objects.User;
 import game.objects.exceptions.repositories.UserOrPasswordEmptyException;
-import game.repository.UserRepository;
+import game.repository.RepositoryHelper;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -13,7 +14,6 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.Random;
-import java.util.concurrent.BlockingQueue;
 
 import static game.http.HttpReady.PASSWORD_KEY;
 import static game.http.HttpReady.USERNAME_KEY;
@@ -21,15 +21,8 @@ import static game.http.enums.StatusCodeEnum.*;
 
 public class LoginUserController extends ControllerBase {
 
-    private final UserRepository userRepository;
-
-    public LoginUserController(BlockingQueue<String> queue, Request request) {
-        this(queue, request, new UserRepository());
-    }
-
-    public LoginUserController(BlockingQueue<String> userQueue, Request request, UserRepository userRepository) {
-        super(userQueue, request);
-        this.userRepository = userRepository;
+    public LoginUserController(Request request, RepositoryHelper repositoryHelper) {
+        super(request, repositoryHelper);
     }
 
     @Override
@@ -45,7 +38,7 @@ public class LoginUserController extends ControllerBase {
                 Timestamp timestamp = Timestamp.from(Instant.now());
                 persistsTokenAndTimestamp(securityToken, timestamp);
                 Timestamp validUntil = Timestamp.valueOf(timestamp.toLocalDateTime().plusDays(1));
-                response.setContent("{'Authorization': '" + securityToken + "', 'ValidUntil': '" + validUntil.toString().substring(0, validUntil.toString().indexOf(".")) + "'}");
+                response.setContent("{\"Authorization\": \"" + securityToken + "\", \"ValidUntil\": \"" + validUntil.toString().substring(0, validUntil.toString().indexOf(".")) + "\"}");
             } else {
                 System.out.println("Login failed");
                 response.setStatus(SC_401);
@@ -64,7 +57,7 @@ public class LoginUserController extends ControllerBase {
         if (username == null || password == null) {
             throw new UserOrPasswordEmptyException("Username and Password must not be empty!");
         }
-        return this.userRepository.login(username, password);
+        return this.repositoryHelper.getUserRepository().login(username, password);
     }
 
     private String generateSecurityToken(String username) {
@@ -88,12 +81,12 @@ public class LoginUserController extends ControllerBase {
     private void persistsTokenAndTimestamp(String securityToken, Timestamp securityTokenTimestamp) {
         String username = this.userRequest.getContent().get(USERNAME_KEY);
         String password = this.userRequest.getContent().get(PASSWORD_KEY);
-        User tempUser = new User();
-        tempUser.setPassword(password);
-        tempUser.setUsername(username);
-        tempUser.setSecurityToken(securityToken);
-        tempUser.setSecurityTokenTimestamp(securityTokenTimestamp);
-        Optional<User> res = this.userRepository.update(tempUser);
+        User tempUser = User.builder().password(password)
+                .username(username)
+                .securityToken(securityToken)
+                .securityTokenTimestamp(securityTokenTimestamp)
+                .build();
+        Optional<User> res = this.repositoryHelper.getUserRepository().update(tempUser);
         if (res.isPresent()) {
             System.out.println("Update successful");
         } else {

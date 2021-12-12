@@ -1,8 +1,10 @@
 package game.controller;
 
+import game.controller.usercontroller.AddUserController;
 import game.http.HttpReady;
 import game.http.request.Request;
 import game.http.response.Response;
+import game.repository.RepositoryHelper;
 import game.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +29,9 @@ class AddUserControllerTest {
     private UserRepository userRepository;
 
     @Mock
+    private RepositoryHelper repositoryHelper;
+
+    @Mock
     private Request userRequest;
 
     private AddUserController userController;
@@ -40,7 +45,8 @@ class AddUserControllerTest {
 
     @BeforeEach
     void setUp() {
-        this.userController = new AddUserController(null, userRequest, userRepository);
+        lenient().when(this.repositoryHelper.getUserRepository()).thenReturn(this.userRepository);
+        this.userController = new AddUserController(userRequest, repositoryHelper);
     }
 
     private void setUpLoginReturnTrue() {

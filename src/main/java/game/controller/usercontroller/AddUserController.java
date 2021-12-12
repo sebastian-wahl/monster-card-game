@@ -1,13 +1,13 @@
-package game.controller;
+package game.controller.usercontroller;
 
+import game.controller.ControllerBase;
 import game.http.request.Request;
 import game.http.response.ConcreteResponse;
 import game.http.response.Response;
 import game.objects.exceptions.repositories.UserOrPasswordEmptyException;
-import game.repository.UserRepository;
+import game.repository.RepositoryHelper;
 
 import java.util.Objects;
-import java.util.concurrent.BlockingQueue;
 
 import static game.http.enums.StatusCodeEnum.SC_201;
 import static game.http.enums.StatusCodeEnum.SC_400;
@@ -15,16 +15,8 @@ import static game.http.request.Request.*;
 
 public class AddUserController extends ControllerBase {
 
-
-    private UserRepository userRepository;
-
-    public AddUserController(BlockingQueue<String> userQueue, Request request) {
-        this(userQueue, request, new UserRepository());
-    }
-
-    public AddUserController(BlockingQueue<String> userQueue, Request request, UserRepository userRepository) {
-        super(userQueue, request);
-        this.userRepository = userRepository;
+    public AddUserController(Request request, RepositoryHelper repositoryHelper) {
+        super(request, repositoryHelper);
     }
 
     @Override
@@ -34,11 +26,11 @@ public class AddUserController extends ControllerBase {
             if (this.addUser()) {
                 System.out.println("User added successfully");
                 // username is present since addUser() returned true
-                response.setContent("User with Username '" + userRequest.getContent().get(USERNAME_KEY) + "' was added.");
+                response.setContent("User with Username \"" + userRequest.getContent().get(USERNAME_KEY) + "\" was added.");
                 response.setStatus(SC_201);
             } else {
                 // no exception so username should be present
-                response.setContent("User '" + userRequest.getContent().get(USERNAME_KEY) + "' already exists!");
+                response.setContent("User \"" + userRequest.getContent().get(USERNAME_KEY) + "\" already exists!");
                 response.setStatus(SC_400);
                 System.out.println("User not added");
             }
@@ -59,6 +51,6 @@ public class AddUserController extends ControllerBase {
         String displayName = Objects.requireNonNullElse(this.userRequest.getContent().get(DISPLAYNAME_KEY), "");
         String bio = Objects.requireNonNullElse(this.userRequest.getContent().get(BIO_KEY), "");
 
-        return this.userRepository.addUserToDb(username, displayName, bio, password);
+        return this.repositoryHelper.getUserRepository().addUserToDb(username, displayName, bio, password);
     }
 }

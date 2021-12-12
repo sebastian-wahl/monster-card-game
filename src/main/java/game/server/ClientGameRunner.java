@@ -1,24 +1,28 @@
 package game.server;
 
-import game.controller.AddUserController;
-import game.controller.BattleController;
 import game.controller.ControllerBase;
-import game.controller.LoginUserController;
+import game.controller.battlecontroller.BattleController;
+import game.controller.battlecontroller.BattleQueueHandler;
+import game.controller.usercontroller.AddUserController;
+import game.controller.usercontroller.LoginUserController;
 import game.http.request.ConcreteRequest;
 import game.http.request.Request;
 import game.http.response.Response;
 import game.http.url.PathEnum;
+import game.repository.RepositoryHelper;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.concurrent.BlockingQueue;
 
 public class ClientGameRunner implements Runnable {
-    Socket clientSocket;
-    BlockingQueue<String> battleQueue;
+    private Socket clientSocket;
+    //BlockingQueue<String> battleQueue;
+    private BattleQueueHandler battleQueueHandler;
+    private RepositoryHelper repositoryHelper;
 
-    public ClientGameRunner(Socket clientSocket, BlockingQueue<String> battleQueue) {
-        this.battleQueue = battleQueue;
+    public ClientGameRunner(Socket clientSocket, BattleQueueHandler battleQueueHandler, RepositoryHelper repositoryHelper) {
+        this.battleQueueHandler = battleQueueHandler;
+        this.repositoryHelper = repositoryHelper;
         this.clientSocket = clientSocket;
     }
 
@@ -37,15 +41,15 @@ public class ClientGameRunner implements Runnable {
     public Response pickController(Request request) {
         PathEnum path = request.getUrl().getUrlPath();
         ControllerBase controller = switch (path) {
-            case USERS -> new AddUserController(battleQueue, request);
-            case BATTLES -> new BattleController(battleQueue, request);
-            case SESSIONS -> new LoginUserController(battleQueue, request);
-            case PACKAGES -> new LoginUserController(battleQueue, request);
-            case CARDS -> new LoginUserController(battleQueue, request);
-            case DECK -> new LoginUserController(battleQueue, request);
-            case STATS -> new LoginUserController(battleQueue, request);
-            case SCORE -> new LoginUserController(battleQueue, request);
-            case TRADINGS -> new LoginUserController(battleQueue, request);
+            case USERS -> new AddUserController(request, repositoryHelper);
+            case BATTLES -> new BattleController(request, repositoryHelper, battleQueueHandler);
+            case SESSIONS -> new LoginUserController(request, repositoryHelper);
+            case PACKAGES -> new LoginUserController(request, repositoryHelper);
+            case CARDS -> new LoginUserController(request, repositoryHelper);
+            case DECK -> new LoginUserController(request, repositoryHelper);
+            case STATS -> new LoginUserController(request, repositoryHelper);
+            case SCORE -> new LoginUserController(request, repositoryHelper);
+            case TRADINGS -> new LoginUserController(request, repositoryHelper);
             case NOMATCH -> throw new IllegalArgumentException("Invalid path: " + path);
         };
         return controller.doWork();

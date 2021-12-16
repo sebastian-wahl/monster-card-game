@@ -1,5 +1,11 @@
 package game.repository;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTCreationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import game.http.models.UserModel;
 import game.objects.User;
 import game.objects.UserStatistics;
 import jBCrypt.BCrypt;
@@ -28,18 +34,22 @@ public class UserRepository extends RepositoryBase {
     // elo K-factor, mean maximum amount of elo points that the user can gain or loose;
     private static final int K_FACTOR = 16;
 
+    private final Algorithm algorithm;
+
     public UserRepository() {
         super();
+        algorithm = Algorithm.HMAC256("secret");
     }
 
     @Synchronized
-    public boolean addUserToDb(String username, String displayName, String bio, String password) {
+    public boolean addUserToDb(UserModel userModel) {
         if (this.dbConnection != null) {
             try (PreparedStatement addUserStatement = this.dbConnection.prepareStatement(ADD_USER_SQL)) {
-                addUserStatement.setString(1, username);
-                addUserStatement.setString(2, this.hashPassword(password));
-                addUserStatement.setString(3, displayName);
-                addUserStatement.setString(4, bio);
+                addUserStatement.setString(1, userModel.getUsername());
+                addUserStatement.setString(2, this.hashPassword(userModel.getPassword()));
+                addUserStatement.setString(3, userModel.getDisplayName());
+                addUserStatement.setString(4, userModel.getBio());
+                // ToDo add image
                 addUserStatement.setInt(5, DEFAULT_COINS);
                 addUserStatement.setInt(6, DEFAULT_ELO);
 
@@ -123,30 +133,25 @@ public class UserRepository extends RepositoryBase {
     }
 
     @Synchronized
-    public boolean loginToken(String username, String token) {
-        try (PreparedStatement getUserStatement = this.dbConnection.prepareStatement(GET_USER_SQL)) {
-            getUserStatement.setString(1, username);
-            ResultSet ret = getUserStatement.executeQuery();
-            ret.next();
-            if (checkIfTokenIsValid(ret.getTimestamp(5))) {
-                return ret.getString(4).equals(token);
-            } else {
-                return false;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+    public boolean loginToken(String token) {
+        Optional<String> username = this.checkToken(token);
+        if (username.isPresent()) {
+            System.out.println("Token for User: \"" + username.get() + "\" is valid");
+            return true;
+        } else {
+            System.out.println("Token is invalid");
+            return false;
         }
-        return false;
     }
 
     @Synchronized
-    public boolean login(String username, String password) {
+    public boolean login(UserModel userModel) {
         try (PreparedStatement addUserStatement = this.dbConnection.prepareStatement(GET_USER_SQL)) {
-            addUserStatement.setString(1, username);
+            addUserStatement.setString(1, userModel.getUsername());
             ResultSet ret = addUserStatement.executeQuery();
             ret.next();
             String hashedPass = ret.getString(3);
-            if (this.checkPass(password, hashedPass)) {
+            if (this.checkPass(userModel.getPassword(), hashedPass)) {
                 return true;
             }
         } catch (SQLException e) {
@@ -260,4 +265,34 @@ public class UserRepository extends RepositoryBase {
                 ).build();
     }
 
+    /* ------ User Token ------ */
+    public Optional<String> generateSecurityToken(String username) {
+        try {
+            return Optional.of(JWT.create()
+                    .withKeyId(username)
+                    .withExpiresAt(Timestamp.from(Instant.now().plusSeconds(3600)))
+                    .sign(algorithm));
+        } catch (JWTCreationException exception) {
+            //Invalid Signing configuration / Couldn't convert Claims.
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Checks if token is valid
+     *
+     * @param token the token
+     * @return optional with username from this token, or empty optional if invalid
+     */
+    public Optional<String> checkToken(String token) {
+        try {
+            JWTVerifier verifier = JWT.require(algorithm)
+                    .build(); //Reusable verifier instance
+            DecodedJWT jwt = verifier.verify(token);
+            return Optional.of(jwt.getKeyId());
+        } catch (JWTCreationException exception) {
+            System.out.println("Error");
+        }
+        return Optional.empty();
+    }
 }

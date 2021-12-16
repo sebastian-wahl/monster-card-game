@@ -3,6 +3,7 @@ package game.http.request;
 
 import game.http.HttpMethod;
 import game.http.HttpReady;
+import game.http.models.HttpModel;
 import game.http.url.Url;
 
 import java.io.InputStream;
@@ -21,6 +22,11 @@ public interface Request extends HttpReady {
     HttpMethod getMethod();
 
     /**
+     * @return Returns the model with data from the request body mapped to it
+     */
+    HttpModel getModel();
+
+    /**
      * @return Returns a URL object of the request. Never returns null.
      */
     Url getUrl();
@@ -35,11 +41,6 @@ public interface Request extends HttpReady {
      * @return Returns the number of header or 0, if no header where found.
      */
     int getHeaderCount();
-
-    /**
-     * @return Returns the user agent from the request header
-     */
-    String getUserAgent();
 
     /**
      * @return Returns the parsed content length request header. Never returns
@@ -60,10 +61,10 @@ public interface Request extends HttpReady {
     InputStream getContentStream();
 
     /**
-     * @return Returns the request content (body) as s string map or empty map if there is
+     * @return Returns the request content (body) as s string or null if empty
      * no content.
      */
-    Map<String, String> getContent();
+    String getContent();
 
     /**
      * @return Returns the request content (body) as byte[] or null if there is

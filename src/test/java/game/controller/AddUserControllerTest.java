@@ -2,6 +2,7 @@ package game.controller;
 
 import game.controller.usercontroller.AddUserController;
 import game.http.HttpReady;
+import game.http.models.UserModel;
 import game.http.request.Request;
 import game.http.response.Response;
 import game.repository.RepositoryHelper;
@@ -12,13 +13,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Map;
-
 import static game.http.enums.StatusCodeEnum.SC_201;
 import static game.http.enums.StatusCodeEnum.SC_400;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
@@ -50,15 +47,15 @@ class AddUserControllerTest {
     }
 
     private void setUpLoginReturnTrue() {
-        Map<String, String> map = Map.of(HttpReady.USERNAME_KEY, USERNAME_1, HttpReady.PASSWORD_KEY, PASSWORD_1);
-        when(this.userRequest.getContent()).thenReturn(map);
-        lenient().when(this.userRepository.addUserToDb(eq(USERNAME_1), anyString(), anyString(), eq(PASSWORD_1))).thenReturn(true);
+        UserModel userModel = UserModel.builder().username(USERNAME_1).password(PASSWORD_1).build();
+        when(this.userRequest.getModel()).thenReturn(userModel);
+        lenient().when(this.userRepository.addUserToDb(userModel)).thenReturn(true);
     }
 
     private void setUpLoginReturnFalse() {
-        Map<String, String> map = Map.of(HttpReady.USERNAME_KEY, USERNAME_2, HttpReady.PASSWORD_KEY, PASSWORD_2);
-        when(this.userRequest.getContent()).thenReturn(map);
-        lenient().when(this.userRepository.addUserToDb(eq(USERNAME_1), anyString(), anyString(), eq(PASSWORD_1))).thenReturn(true);
+        UserModel userModel = UserModel.builder().username(USERNAME_2).password(PASSWORD_2).build();
+        when(this.userRequest.getModel()).thenReturn(userModel);
+        lenient().when(this.userRepository.addUserToDb(userModel)).thenReturn(false);
     }
 
     @Test
@@ -83,12 +80,12 @@ class AddUserControllerTest {
 
     @Test
     void testDoWork400WhenEmptyResponse() {
-        Map<String, String> map = Map.of("", "");
-        when(this.userRequest.getContent()).thenReturn(map);
+        UserModel userModel = UserModel.builder().username("").password("").build();
+        when(this.userRequest.getModel()).thenReturn(userModel);
         Response response = this.userController.doWork();
         assertThat(response.getStatusCode()).isEqualTo(400);
         assertThat(response.getStatus()).isEqualTo(SC_400);
-        assertThat(response.getContent()).contains("Username and Password must not be empty!");
+        assertThat(response.getContent()).contains("Username and Password must be longer than 4 characters!");
         assertThat(response.getContentType()).isEqualTo(HttpReady.CONTENT_TYPE_TEXT_PLAIN);
     }
 }

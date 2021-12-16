@@ -15,7 +15,3 @@ T
 $src/main/java/game/http/url/Url.java,a\a\aad0a93aa3c5a49a0499a80efa721537cbe4531c
 e
 5src/main/java/game/db/DatabaseConnectionProvider.java,e\b\eb6a5d2fc033e834c8b390f3d9938b99c38281b5
-K
-MonsterTradingCardsGame.iml,0\d\0d5dfdcc58abfa9d88b704efd58dadc23d899c47
-7
-pom.xml,4\4\442292b8a7efeabbe4cc176709b833b1792140ec

@@ -1,17 +1,14 @@
 package game.controller.usercontroller;
 
 import game.controller.ControllerBase;
+import game.http.models.UserModel;
 import game.http.request.Request;
 import game.http.response.ConcreteResponse;
 import game.http.response.Response;
 import game.objects.exceptions.repositories.UserOrPasswordEmptyException;
 import game.repository.RepositoryHelper;
 
-import java.util.Objects;
-
-import static game.http.enums.StatusCodeEnum.SC_201;
-import static game.http.enums.StatusCodeEnum.SC_400;
-import static game.http.request.Request.*;
+import static game.http.enums.StatusCodeEnum.*;
 
 public class AddUserController extends ControllerBase {
 
@@ -23,16 +20,21 @@ public class AddUserController extends ControllerBase {
     public Response doWork() {
         Response response = new ConcreteResponse();
         try {
-            if (this.addUser()) {
-                System.out.println("User added successfully");
-                // username is present since addUser() returned true
-                response.setContent("User with Username \"" + userRequest.getContent().get(USERNAME_KEY) + "\" was added.");
-                response.setStatus(SC_201);
+            if (this.userRequest.getModel() instanceof UserModel) {
+                UserModel userModel = (UserModel) this.userRequest.getModel();
+                if (this.addUser(userModel)) {
+                    System.out.println("User added successfully");
+                    // username is present since addUser() returned true
+                    response.setContent("User with Username \"" + userModel.getUsername() + "\" was added.");
+                    response.setStatus(SC_201);
+                } else {
+                    // no exception so username should be present
+                    response.setContent("User \"" + userModel.getUsername() + "\" already exists!");
+                    response.setStatus(SC_400);
+                    System.out.println("User not added");
+                }
             } else {
-                // no exception so username should be present
-                response.setContent("User \"" + userRequest.getContent().get(USERNAME_KEY) + "\" already exists!");
-                response.setStatus(SC_400);
-                System.out.println("User not added");
+                response.setStatus(SC_500);
             }
         } catch (UserOrPasswordEmptyException ex) {
             response.setStatus(SC_400);
@@ -41,16 +43,20 @@ public class AddUserController extends ControllerBase {
         return response;
     }
 
-    private boolean addUser() {
+    private boolean addUser(UserModel userModel) {
         // first two are mandatory,
-        String username = this.userRequest.getContent().get(USERNAME_KEY);
-        String password = this.userRequest.getContent().get(PASSWORD_KEY);
-        if (username == null || password == null) {
-            throw new UserOrPasswordEmptyException("Username and Password must not be empty!");
+        if (this.userRequest.getModel() instanceof UserModel) {
+            if (this.throwUsernameAndPasswordException(userModel)) {
+                throw new UserOrPasswordEmptyException("Username and Password must be longer than 4 characters!");
+            }
+            return this.repositoryHelper.getUserRepository().addUserToDb(userModel);
         }
-        String displayName = Objects.requireNonNullElse(this.userRequest.getContent().get(DISPLAYNAME_KEY), "");
-        String bio = Objects.requireNonNullElse(this.userRequest.getContent().get(BIO_KEY), "");
+        return false;
 
-        return this.repositoryHelper.getUserRepository().addUserToDb(username, displayName, bio, password);
+    }
+
+    private boolean throwUsernameAndPasswordException(UserModel userModel) {
+        return userModel.getUsername() == null || userModel.getUsername().length() < 4 ||
+                userModel.getPassword() == null || userModel.getPassword().length() < 4;
     }
 }

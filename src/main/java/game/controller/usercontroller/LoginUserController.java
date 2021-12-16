@@ -1,22 +1,17 @@
 package game.controller.usercontroller;
 
 import game.controller.ControllerBase;
+import game.http.models.UserModel;
 import game.http.request.Request;
 import game.http.response.ConcreteResponse;
 import game.http.response.Response;
-import game.objects.User;
 import game.objects.exceptions.repositories.UserOrPasswordEmptyException;
 import game.repository.RepositoryHelper;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Optional;
-import java.util.Random;
 
-import static game.http.HttpReady.PASSWORD_KEY;
-import static game.http.HttpReady.USERNAME_KEY;
 import static game.http.enums.StatusCodeEnum.*;
 
 public class LoginUserController extends ControllerBase {
@@ -29,20 +24,31 @@ public class LoginUserController extends ControllerBase {
     public Response doWork() {
         Response response = new ConcreteResponse();
         try {
-            if (this.doLogin()) {
-                System.out.println("Login successful");
-                response.setStatus(SC_200);
-                // username is present, since this is checked in the login method
-                String securityToken = generateSecurityToken(this.userRequest.getContent().get(USERNAME_KEY));
-                System.out.println("Security token: " + securityToken);
-                Timestamp timestamp = Timestamp.from(Instant.now());
-                persistsTokenAndTimestamp(securityToken, timestamp);
-                Timestamp validUntil = Timestamp.valueOf(timestamp.toLocalDateTime().plusDays(1));
-                response.setContent("{\"Authorization\": \"" + securityToken + "\", \"ValidUntil\": \"" + validUntil.toString().substring(0, validUntil.toString().indexOf(".")) + "\"}");
+            if (this.userRequest.getModel() instanceof UserModel) {
+                UserModel userModel = (UserModel) this.userRequest.getModel();
+                if (this.doLogin(userModel)) {
+                    // username is present, since this is checked in the login method
+                    Optional<String> securityTokenOpt = this.repositoryHelper.getUserRepository().generateSecurityToken(userModel.getUsername());
+                    if (securityTokenOpt.isPresent()) {
+                        System.out.println("Login successful");
+                        response.setStatus(SC_200);
+
+                        String securityToken = securityTokenOpt.get();
+                        System.out.println("Security token: " + securityToken);
+                        // validity period
+                        Timestamp timestamp = Timestamp.from(Instant.now());
+                        Timestamp validUntil = Timestamp.valueOf(timestamp.toLocalDateTime().plusMinutes(60));
+                        response.setContent("{\"Authorization\": \"" + securityToken + "\", \"ValidUntil\": \"" + validUntil.toString().substring(0, validUntil.toString().indexOf(".")) + "\"}");
+                    } else {
+                        response.setStatus(SC_500);
+                    }
+                } else {
+                    System.out.println("Login failed");
+                    response.setStatus(SC_401);
+                    response.setContent("Login failed. Please check username and password.");
+                }
             } else {
-                System.out.println("Login failed");
-                response.setStatus(SC_401);
-                response.setContent("Login failed. Please check username and password.");
+                response.setStatus(SC_500);
             }
         } catch (UserOrPasswordEmptyException ex) {
             response.setContent(ex.getMessage());
@@ -51,47 +57,15 @@ public class LoginUserController extends ControllerBase {
         return response;
     }
 
-    private boolean doLogin() {
-        String username = this.userRequest.getContent().get(USERNAME_KEY);
-        String password = this.userRequest.getContent().get(PASSWORD_KEY);
-        if (username == null || password == null) {
-            throw new UserOrPasswordEmptyException("Username and Password must not be empty!");
+    private boolean doLogin(UserModel userModel) {
+        if (throwUsernameAndPasswordException(userModel)) {
+            throw new UserOrPasswordEmptyException("Username and Password must be longer than 4 characters!");
         }
-        return this.repositoryHelper.getUserRepository().login(username, password);
+        return this.repositoryHelper.getUserRepository().login(userModel);
     }
 
-    private String generateSecurityToken(String username) {
-        String chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijk"
-                + "lmnopqrstuvwxyz"
-                + "!@§$%&/()=?{[]}*+~#-_.,;:";
-        try {
-            Random rnd = SecureRandom.getInstanceStrong();
-            StringBuilder sb = new StringBuilder(20);
-            for (int i = 0; i < 20; i++) {
-                sb.append(chars.charAt(rnd.nextInt(chars.length())));
-            }
-            return username + "-" + sb.toString();
-
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        return null;
+    private boolean throwUsernameAndPasswordException(UserModel userModel) {
+        return userModel.getUsername() == null || userModel.getUsername().length() < 4 ||
+                userModel.getPassword() == null || userModel.getPassword().length() < 4;
     }
-
-    private void persistsTokenAndTimestamp(String securityToken, Timestamp securityTokenTimestamp) {
-        String username = this.userRequest.getContent().get(USERNAME_KEY);
-        String password = this.userRequest.getContent().get(PASSWORD_KEY);
-        User tempUser = User.builder().password(password)
-                .username(username)
-                .securityToken(securityToken)
-                .securityTokenTimestamp(securityTokenTimestamp)
-                .build();
-        Optional<User> res = this.repositoryHelper.getUserRepository().update(tempUser);
-        if (res.isPresent()) {
-            System.out.println("Update successful");
-        } else {
-            System.out.println("Error occurred when updating user");
-        }
-    }
-
 }

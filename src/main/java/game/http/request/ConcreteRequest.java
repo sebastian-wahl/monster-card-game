@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import game.http.HttpMethod;
 import game.http.exceptions.UnsupportedHttpMethod;
+import game.http.models.*;
 import game.http.url.ConcreteUrl;
 import game.http.url.Url;
 import lombok.Getter;
@@ -25,11 +26,16 @@ public class ConcreteRequest implements Request {
     private Url url;
     @Getter
     private Map<String, String> headers;
-    private Map<String, String> body;
+    private String body;
 
+    @Getter
+    private HttpModel model;
+
+
+    private ObjectMapper o = new ObjectMapper();
 
     public ConcreteRequest() {
-        headers = new HashMap<>();
+        this.headers = new HashMap<>();
     }
 
 
@@ -41,9 +47,31 @@ public class ConcreteRequest implements Request {
             url = readUrl(firstLine);
             headers = readHttpHeader(input);
             body = readBody(input, getContentLength());
+            this.setHttpModelBasedOnRoute();
         } catch (IOException ex) {
             System.out.println("Error when reading the input stream");
             System.out.println(ex.getMessage());
+        }
+    }
+
+    private void setHttpModelBasedOnRoute() throws JsonProcessingException {
+        switch (this.url.getUrlPath()) {
+            case BATTLES:
+                break;
+            case USERS, SESSIONS:
+                this.model = o.readValue(this.body, UserModel.class);
+                break;
+            case PACKAGES:
+                this.model = o.readValue(this.body, PackageModel.class);
+                break;
+            case DECK:
+                this.model = o.readValue(this.body, DeckModel.class);
+                break;
+            case TRADINGS:
+                this.model = o.readValue(this.body, TradeModel.class);
+                break;
+            default:
+                this.model = null;
         }
     }
 
@@ -85,7 +113,25 @@ public class ConcreteRequest implements Request {
         return null;
     }
 
-    private Map<String, String> readBody(BufferedReader streamReader, int contentLength) {
+    private String readBody(BufferedReader streamReader, int contentLength) {
+        if (contentLength == 0)
+            return "";
+
+        StringBuilder bodyString = new StringBuilder();
+        char[] content = new char[contentLength];
+        try {
+            if (streamReader.read(content) != -1) {
+                // success
+                bodyString.append(content);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return bodyString.toString();
+    }
+
+    private Map<String, String> readBody2(BufferedReader streamReader, int contentLength) {
         if (contentLength == 0)
             return Map.of();
 
@@ -114,11 +160,6 @@ public class ConcreteRequest implements Request {
     }
 
     @Override
-    public String getUserAgent() {
-        return headers.getOrDefault(USERNAME_KEY, null);
-    }
-
-    @Override
     public int getContentLength() {
         if (headers.containsKey(CONTENT_LENGTH_KEY))
             return Integer.parseInt(headers.get(CONTENT_LENGTH_KEY));
@@ -136,7 +177,7 @@ public class ConcreteRequest implements Request {
     }
 
     @Override
-    public Map<String, String> getContent() {
+    public String getContent() {
         return this.body;
     }
 
@@ -168,6 +209,6 @@ public class ConcreteRequest implements Request {
 
     @Override
     public byte[] getContentBytes() {
-        return this.getMapAsString(this.body).getBytes(StandardCharsets.UTF_8);
+        return this.body.getBytes(StandardCharsets.UTF_8);
     }
 }

@@ -23,7 +23,7 @@ public class BattleController extends ControllerBase {
     public Response doWork() {
         String token = userRequest.getHeaders().get(HttpReady.AUTHORIZATION_KEY);
         String username = token.substring(0, token.indexOf("-"));
-        if (this.repositoryHelper.getUserRepository().loginToken(username, token)) {
+        if (this.repositoryHelper.getUserRepository().loginToken(token)) {
             CompletableFuture<Response> responseFuture = battleQueueHandler.addUserToBattleQueueAndHandleBattle(username);
             try {
                 return responseFuture.get();

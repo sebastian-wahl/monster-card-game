@@ -8,6 +8,7 @@ import game.http.response.ConcreteResponse;
 import game.http.response.Response;
 import game.repository.RepositoryHelper;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -21,10 +22,10 @@ public class BattleController extends ControllerBase {
 
     @Override
     public Response doWork() {
-        String token = userRequest.getHeaders().get(HttpReady.AUTHORIZATION_KEY);
-        String username = token.substring(0, token.indexOf("-"));
-        if (this.repositoryHelper.getUserRepository().loginToken(token)) {
-            CompletableFuture<Response> responseFuture = battleQueueHandler.addUserToBattleQueueAndHandleBattle(username);
+        String token = userRequest.getHeaders().get(HttpReady.AUTHORIZATION_KEY.toString());
+        Optional<String> tokenValid = this.repositoryHelper.getUserRepository().checkToken(token);
+        if (tokenValid.isPresent()) {
+            CompletableFuture<Response> responseFuture = battleQueueHandler.addUserToBattleQueueAndHandleBattle(tokenValid.get());
             try {
                 return responseFuture.get();
             } catch (InterruptedException | ExecutionException e) {

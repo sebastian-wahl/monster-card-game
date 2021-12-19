@@ -11,11 +11,14 @@ import game.http.url.Url;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+
+import static game.http.HttpReady.*;
 
 public class ConcreteRequest implements Request {
 
@@ -59,13 +62,22 @@ public class ConcreteRequest implements Request {
             case BATTLES:
                 break;
             case USERS, SESSIONS:
-                this.model = o.readValue(this.body, UserModel.class);
+                if (this.method == HttpMethod.POST) {
+                    this.model = o.readValue(this.body, UserModel.class);
+                }
                 break;
             case PACKAGES:
-                this.model = o.readValue(this.body, PackageModel.class);
+                // create package
+                if (this.method == HttpMethod.POST && this.url.getUrlSegments().size() == 1) {
+                    List<CardModel> packageCards = o.readValue(this.body, new TypeReference<List<CardModel>>() {
+                    });
+                    this.model = PackageModel.builder().packageCards(packageCards).build();
+                }
                 break;
             case DECK:
-                this.model = o.readValue(this.body, DeckModel.class);
+                if (this.method == HttpMethod.POST) {
+                    this.model = o.readValue(this.body, DeckModel.class);
+                }
                 break;
             case TRADINGS:
                 this.model = o.readValue(this.body, TradeModel.class);
@@ -131,80 +143,26 @@ public class ConcreteRequest implements Request {
         return bodyString.toString();
     }
 
-    private Map<String, String> readBody2(BufferedReader streamReader, int contentLength) {
-        if (contentLength == 0)
-            return Map.of();
-
-        StringBuilder bodyString = new StringBuilder();
-        char[] content = new char[contentLength];
-        try {
-            if (streamReader.read(content) != -1) {
-                // succ
-                bodyString.append(content);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return this.getStringAsMap(bodyString.toString());
-    }
-
     @Override
-    public boolean isValid() {
-        return this.method != HttpMethod.EMPTY && url != null;
-    }
-
-    @Override
-    public int getHeaderCount() {
-        return this.headers != null ? this.headers.size() : 0;
+    public String getAuthorizationToken() {
+        return Objects.requireNonNullElse(this.headers.get(AUTHORIZATION_KEY.toString()), "");
     }
 
     @Override
     public int getContentLength() {
-        if (headers.containsKey(CONTENT_LENGTH_KEY))
-            return Integer.parseInt(headers.get(CONTENT_LENGTH_KEY));
+        if (headers.containsKey(CONTENT_LENGTH_KEY.toString()))
+            return Integer.parseInt(headers.get(CONTENT_LENGTH_KEY.toString()));
         return 0;
     }
 
     @Override
     public String getContentType() {
-        return headers.getOrDefault(CONTENT_TYPE_KEY, null);
-    }
-
-    @Override
-    public InputStream getContentStream() {
-        return new ByteArrayInputStream(this.getContentBytes());
+        return headers.getOrDefault(CONTENT_TYPE_KEY.toString(), null);
     }
 
     @Override
     public String getContent() {
         return this.body;
-    }
-
-    private String getMapAsString(Map<String, String> map) {
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        String mapAsString = "";
-        try {
-            mapAsString = objectMapper.writeValueAsString(map);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        return mapAsString;
-    }
-
-    private Map<String, String> getStringAsMap(String jsonString) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        Map<String, String> map;
-        try {
-            // convert JSON string to Map
-            map = objectMapper.readValue(jsonString, new TypeReference<Map<String, String>>() {
-            });
-        } catch (IOException e) {
-            // Did not work, content no json -> map should stay empty
-            map = Map.of();
-        }
-        return map;
     }
 
     @Override

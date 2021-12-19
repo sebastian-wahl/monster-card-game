@@ -48,4 +48,8 @@ public class Deck {
     public boolean isDeckEmpty() {
         return this.deck.isEmpty();
     }
+
+    public List<CardBase> getCards() {
+        return this.deck;
+    }
 }

@@ -1,6 +1,7 @@
 package game.server;
 
 import game.controller.ControllerBase;
+import game.controller.PackageController;
 import game.controller.battlecontroller.BattleController;
 import game.controller.battlecontroller.BattleQueueHandler;
 import game.controller.usercontroller.AddUserController;
@@ -16,7 +17,6 @@ import java.net.Socket;
 
 public class ClientGameRunner implements Runnable {
     private Socket clientSocket;
-    //BlockingQueue<String> battleQueue;
     private BattleQueueHandler battleQueueHandler;
     private RepositoryHelper repositoryHelper;
 
@@ -44,7 +44,8 @@ public class ClientGameRunner implements Runnable {
             case USERS -> new AddUserController(request, repositoryHelper);
             case BATTLES -> new BattleController(request, repositoryHelper, battleQueueHandler);
             case SESSIONS -> new LoginUserController(request, repositoryHelper);
-            case PACKAGES -> new LoginUserController(request, repositoryHelper);
+            case PACKAGES -> new PackageController(request, repositoryHelper);
+            //case TRANSACTIONS -> new LoginUserController(request, repositoryHelper);
             case CARDS -> new LoginUserController(request, repositoryHelper);
             case DECK -> new LoginUserController(request, repositoryHelper);
             case STATS -> new LoginUserController(request, repositoryHelper);

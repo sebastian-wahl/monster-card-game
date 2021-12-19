@@ -1,7 +1,6 @@
 package game.controller;
 
 import game.controller.usercontroller.AddUserController;
-import game.http.HttpReady;
 import game.http.models.UserModel;
 import game.http.request.Request;
 import game.http.response.Response;
@@ -13,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static game.http.HttpReady.CONTENT_TYPE_TEXT_PLAIN;
 import static game.http.enums.StatusCodeEnum.SC_201;
 import static game.http.enums.StatusCodeEnum.SC_400;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -65,7 +65,7 @@ class AddUserControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(201);
         assertThat(response.getStatus()).isEqualTo(SC_201);
         assertThat(response.getContent()).contains(USERNAME_1);
-        assertThat(response.getContentType()).isEqualTo(HttpReady.CONTENT_TYPE_TEXT_PLAIN);
+        assertThat(response.getContentType()).isEqualTo(CONTENT_TYPE_TEXT_PLAIN.toString());
     }
 
     @Test
@@ -75,7 +75,7 @@ class AddUserControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(400);
         assertThat(response.getStatus()).isEqualTo(SC_400);
         assertThat(response.getContent()).contains(USERNAME_2);
-        assertThat(response.getContentType()).isEqualTo(HttpReady.CONTENT_TYPE_TEXT_PLAIN);
+        assertThat(response.getContentType()).isEqualTo(CONTENT_TYPE_TEXT_PLAIN.toString());
     }
 
     @Test
@@ -86,6 +86,6 @@ class AddUserControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(400);
         assertThat(response.getStatus()).isEqualTo(SC_400);
         assertThat(response.getContent()).contains("Username and Password must be longer than 4 characters!");
-        assertThat(response.getContentType()).isEqualTo(HttpReady.CONTENT_TYPE_TEXT_PLAIN);
+        assertThat(response.getContentType()).isEqualTo(CONTENT_TYPE_TEXT_PLAIN.toString());
     }
 }

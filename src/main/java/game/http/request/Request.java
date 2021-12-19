@@ -2,20 +2,12 @@ package game.http.request;
 
 
 import game.http.HttpMethod;
-import game.http.HttpReady;
 import game.http.models.HttpModel;
 import game.http.url.Url;
 
-import java.io.InputStream;
 import java.util.Map;
 
-public interface Request extends HttpReady {
-    /**
-     * @return Returns true if the request is valid. A request is valid, if
-     * method and url could be parsed. A header is not necessary.
-     */
-    boolean isValid();
-
+public interface Request {
     /**
      * @return Returns the request methode.
      */
@@ -38,9 +30,9 @@ public interface Request extends HttpReady {
     Map<String, String> getHeaders();
 
     /**
-     * @return Returns the number of header or 0, if no header where found.
+     * @return Returns the Authorization token if present, else an empty string
      */
-    int getHeaderCount();
+    String getAuthorizationToken();
 
     /**
      * @return Returns the parsed content length request header. Never returns
@@ -49,16 +41,9 @@ public interface Request extends HttpReady {
     int getContentLength();
 
     /**
-     * @return Returns the parsed content type request header. Never returns
-     * null.
+     * @return Returns the parsed content type request header.
      */
     String getContentType();
-
-    /**
-     * @return Returns the request content (body) stream or null if there is no
-     * content stream.
-     */
-    InputStream getContentStream();
 
     /**
      * @return Returns the request content (body) as s string or null if empty

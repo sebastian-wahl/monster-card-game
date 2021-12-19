@@ -1,13 +1,22 @@
 package game.http;
 
-public interface HttpReady {
+public enum HttpReady {
     // header
-    String AUTHORIZATION_KEY = "Authorization";
+    AUTHORIZATION_KEY("Authorization"),
+    CONTENT_LENGTH_KEY("content-length"),
+    CONTENT_TYPE_KEY("content-type"),
+    SERVER_NAME_KEY("server"),
+    CONTENT_TYPE_APPLICATION_JSON("application/json"),
+    CONTENT_TYPE_TEXT_PLAIN("text/plain");
 
-    String CONTENT_LENGTH_KEY = "content-length";
-    String CONTENT_TYPE_KEY = "content-type";
-    String SERVER_NAME_KEY = "server";
+    private String text;
 
-    String CONTENT_TYPE_APPLICATION_JSON = "application/json";
-    String CONTENT_TYPE_TEXT_PLAIN = "text/plain";
+    HttpReady(String text) {
+        this.text = text;
+    }
+
+    @Override
+    public String toString() {
+        return this.text;
+    }
 }

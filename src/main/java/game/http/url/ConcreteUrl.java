@@ -17,8 +17,6 @@ public class ConcreteUrl implements Url {
     private String fileName;
     @Getter
     private String fileExtension;
-    @Getter
-    private String fragment;
 
     public ConcreteUrl(String url) {
         this.url = url;
@@ -37,8 +35,8 @@ public class ConcreteUrl implements Url {
             readUrlSegments(urlPathParams[0]);
             readUrlParams(urlPathParams[1]);
         } else {
-            urlPath = this.getPathEnumFromString(url.substring(1));
             readUrlSegments(url);
+            urlPath = this.getPathEnumFromString(this.urlSegments.get(this.urlSegments.size() - 1));
         }
         readUrlFileName(urlSegments);
     }

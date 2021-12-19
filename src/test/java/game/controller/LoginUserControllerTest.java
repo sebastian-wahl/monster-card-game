@@ -1,7 +1,6 @@
 package game.controller;
 
 import game.controller.usercontroller.LoginUserController;
-import game.http.HttpReady;
 import game.http.models.UserModel;
 import game.http.request.Request;
 import game.http.response.Response;
@@ -15,6 +14,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
+import static game.http.HttpReady.CONTENT_TYPE_APPLICATION_JSON;
+import static game.http.HttpReady.CONTENT_TYPE_TEXT_PLAIN;
 import static game.http.enums.StatusCodeEnum.*;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -67,7 +68,7 @@ class LoginUserControllerTest {
         assertThat(response.getStatus()).isEqualTo(SC_200);
         assertThat(response.getContent()).contains("\"Authorization\"");
         assertThat(response.getContent()).contains("\"ValidUntil\"");
-        assertThat(response.getContentType()).isEqualTo(HttpReady.CONTENT_TYPE_APPLICATION_JSON);
+        assertThat(response.getContentType()).isEqualTo(CONTENT_TYPE_APPLICATION_JSON.toString());
     }
 
     @Test
@@ -77,7 +78,7 @@ class LoginUserControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(401);
         assertThat(response.getStatus()).isEqualTo(SC_401);
         assertThat(response.getContent()).contains("Login failed. Please check username and password.");
-        assertThat(response.getContentType()).isEqualTo(HttpReady.CONTENT_TYPE_TEXT_PLAIN);
+        assertThat(response.getContentType()).isEqualTo(CONTENT_TYPE_TEXT_PLAIN.toString());
     }
 
     @Test
@@ -88,6 +89,6 @@ class LoginUserControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(400);
         assertThat(response.getStatus()).isEqualTo(SC_400);
         assertThat(response.getContent()).contains("Username and Password must be longer than 4 characters!");
-        assertThat(response.getContentType()).isEqualTo(HttpReady.CONTENT_TYPE_TEXT_PLAIN);
+        assertThat(response.getContentType()).isEqualTo(CONTENT_TYPE_TEXT_PLAIN.toString());
     }
 }

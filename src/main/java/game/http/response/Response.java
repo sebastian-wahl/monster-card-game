@@ -1,13 +1,12 @@
 package game.http.response;
 
-import game.http.HttpReady;
 import game.http.enums.StatusCodeEnum;
 
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
-public interface Response extends HttpReady {
+public interface Response {
     /**
      * @return Returns a writable map of the response headers. Never returns
      * null.
@@ -24,6 +23,9 @@ public interface Response extends HttpReady {
      */
     String getContentType();
 
+    /**
+     * @return Returns the content
+     */
     String getContent();
 
     /**

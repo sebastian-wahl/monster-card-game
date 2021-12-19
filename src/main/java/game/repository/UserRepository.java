@@ -69,13 +69,18 @@ public class UserRepository extends RepositoryBase {
     }
 
     private Optional<User> loginAndGetUser(String username, String password) {
+        Optional<User> userOpt = this.getUser(username);
+        if (userOpt.isPresent() && this.checkPass(password, userOpt.get().getPassword())) {
+            return userOpt;
+        }
+        return Optional.empty();
+    }
+
+    private Optional<User> getUser(String username) {
         try (PreparedStatement addUserStatement = this.dbConnection.prepareStatement(GET_USER_SQL)) {
             addUserStatement.setString(1, username);
             ResultSet ret = addUserStatement.executeQuery();
-            User user = this.setUserFromResultSet(ret);
-            if (this.checkPass(password, user.getPassword())) {
-                return Optional.of(user);
-            }
+            return Optional.of(this.setUserFromResultSet(ret));
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -84,30 +89,28 @@ public class UserRepository extends RepositoryBase {
 
     @Synchronized
     public boolean updateElo(String winnerUsername, String loserUsername) {
-        try (PreparedStatement getWinnerUserStatement = this.dbConnection.prepareStatement(GET_USER_SQL);
-             PreparedStatement getLoserUserStatement = this.dbConnection.prepareStatement(GET_USER_SQL)) {
-            getWinnerUserStatement.setString(1, winnerUsername);
-            ResultSet retWinner = getWinnerUserStatement.executeQuery();
-            User winner = this.setUserFromResultSet(retWinner);
-
-            getLoserUserStatement.setString(1, loserUsername);
-            ResultSet retLoser = getLoserUserStatement.executeQuery();
-            User loser = this.setUserFromResultSet(retLoser);
+        Optional<User> winnerOpt = this.getUser(winnerUsername);
+        Optional<User> loserOpt = this.getUser(loserUsername);
+        if (winnerOpt.isPresent() && loserOpt.isPresent()) {
+            User winner = winnerOpt.get();
+            User loser = loserOpt.get();
 
             double eloUserWinnerNew = calculateNewEloWinner(winner.getElo(), loser.getElo());
             double eloUserLoserNew = calculateNewEloLoser(loser.getElo(), winner.getElo());
 
-            // update winner
-            User updatedUser = winner.copy();
-            updatedUser.setElo(eloUserWinnerNew);
-            this.doUpdate(winner, updatedUser);
+            try {
+                // update winner
+                User updatedUser = winner.copy();
+                updatedUser.setElo(eloUserWinnerNew);
+                this.doUpdate(winner, updatedUser);
 
-            // update loser
-            updatedUser = loser.copy();
-            updatedUser.setElo(eloUserLoserNew);
-            this.doUpdate(loser, updatedUser);
-        } catch (SQLException ex) {
-            ex.printStackTrace();
+                // update loser
+                updatedUser = loser.copy();
+                updatedUser.setElo(eloUserLoserNew);
+                this.doUpdate(loser, updatedUser);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
         return false;
     }
@@ -146,18 +149,7 @@ public class UserRepository extends RepositoryBase {
 
     @Synchronized
     public boolean login(UserModel userModel) {
-        try (PreparedStatement addUserStatement = this.dbConnection.prepareStatement(GET_USER_SQL)) {
-            addUserStatement.setString(1, userModel.getUsername());
-            ResultSet ret = addUserStatement.executeQuery();
-            ret.next();
-            String hashedPass = ret.getString(3);
-            if (this.checkPass(userModel.getPassword(), hashedPass)) {
-                return true;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
+        return this.loginAndGetUser(userModel.getUsername(), userModel.getPassword()).isPresent();
     }
 
     private boolean checkPass(String plainPassword, String hashedPassword) {
@@ -184,7 +176,7 @@ public class UserRepository extends RepositoryBase {
     }
 
     private Optional<User> updateWithToken(User userWrapper) {
-        Optional<User> userOpt = this.checkIfTokenIsValidAndGetUser(userWrapper.getSecurityToken());
+        Optional<User> userOpt = this.checkTokenAndGetUser(userWrapper.getSecurityToken());
         if (userOpt.isPresent()) {
             return updateAndCheckIfValid(userOpt.get(), userWrapper);
         } else {
@@ -222,30 +214,6 @@ public class UserRepository extends RepositoryBase {
         } catch (SQLException ex) {
             throw ex;
         }
-    }
-
-    private boolean checkIfTokenIsValid(Timestamp securityTokenTimestamp) {
-        Timestamp now = Timestamp.from(Instant.now());
-        Timestamp validUntil = Timestamp.valueOf(securityTokenTimestamp.toLocalDateTime().plusDays(1));
-        return now.before(validUntil);
-    }
-
-    private Optional<User> checkIfTokenIsValidAndGetUser(String securityToken) {
-        Timestamp now = Timestamp.from(Instant.now());
-
-        try (PreparedStatement checkTokenStatement = this.dbConnection.prepareStatement(GET_USER_TOKEN_SQL)) {
-            checkTokenStatement.setString(1, securityToken);
-            ResultSet ret = checkTokenStatement.executeQuery();
-            User user = this.setUserFromResultSet(ret);
-            Timestamp validUntil = Timestamp.valueOf(user.getSecurityTokenTimestamp().toLocalDateTime().plusDays(1));
-            if (now.before(validUntil)) {
-                return Optional.of(user);
-            }
-        } catch (SQLException |
-                IllegalArgumentException ex) {
-            ex.printStackTrace();
-        }
-        return Optional.empty();
     }
 
     private User setUserFromResultSet(ResultSet ret) throws SQLException {
@@ -292,6 +260,15 @@ public class UserRepository extends RepositoryBase {
             return Optional.of(jwt.getKeyId());
         } catch (JWTCreationException exception) {
             System.out.println("Error");
+        }
+        return Optional.empty();
+    }
+
+    public Optional<User> checkTokenAndGetUser(String token) {
+        Optional<String> usernameOpt = this.checkToken(token);
+        if (usernameOpt.isPresent()) {
+            String username = usernameOpt.get();
+            return this.getUser(username);
         }
         return Optional.empty();
     }

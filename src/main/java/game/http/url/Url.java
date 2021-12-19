@@ -46,11 +46,4 @@ public interface Url {
      * Never returns null.
      */
     String getFileExtension();
-
-    /**
-     * @return Returns the url fragment. A fragment is the part after a '#' char
-     * at the end of the url. If the url contains no fragment, a empty
-     * string is returned. Never returns null.
-     */
-    String getFragment();
 }

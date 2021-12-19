@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
+import static game.http.HttpReady.*;
 import static game.http.enums.StatusCodeEnum.SC_204;
 import static game.http.enums.StatusCodeEnum.SC_500;
 import static game.server.Server.DEFAUlT_SERVER_NAME;
@@ -31,21 +32,21 @@ public class ConcreteResponse implements Response {
 
     @Override
     public int getContentLength() {
-        if (headers.containsKey(CONTENT_LENGTH_KEY))
-            return Integer.parseInt(headers.get(CONTENT_LENGTH_KEY));
+        if (headers.containsKey(CONTENT_LENGTH_KEY.toString()))
+            return Integer.parseInt(headers.get(CONTENT_LENGTH_KEY.toString()));
         else
             return 0;
     }
 
     @Override
     public String getContentType() {
-        return headers.getOrDefault(CONTENT_TYPE_KEY, null);
+        return headers.getOrDefault(CONTENT_TYPE_KEY.toString(), null);
     }
 
 
     @Override
     public void setContentType(String contentType) {
-        headers.put(CONTENT_TYPE_KEY, contentType);
+        headers.put(CONTENT_TYPE_KEY.toString(), contentType);
     }
 
     @Override
@@ -70,22 +71,22 @@ public class ConcreteResponse implements Response {
 
     @Override
     public String getServerHeader() {
-        return headers.getOrDefault(SERVER_NAME_KEY, DEFAUlT_SERVER_NAME);
+        return headers.getOrDefault(SERVER_NAME_KEY.toString(), DEFAUlT_SERVER_NAME);
     }
 
 
     @Override
     public void setServerHeader(String server) {
-        headers.put(SERVER_NAME_KEY, server);
+        headers.put(SERVER_NAME_KEY.toString(), server);
     }
 
     @Override
     public void setContent(String content) {
         this.content = content;
         if ((content.startsWith("{") && content.endsWith("}")) || (content.startsWith("[") && content.endsWith("]")))
-            setContentType(CONTENT_TYPE_APPLICATION_JSON);
+            setContentType(CONTENT_TYPE_APPLICATION_JSON.toString());
         else if (!this.content.equals("")) {
-            setContentType(CONTENT_TYPE_TEXT_PLAIN);
+            setContentType(CONTENT_TYPE_TEXT_PLAIN.toString());
         }
         if (this.content.equals(""))
             setStatus(SC_204);
@@ -95,9 +96,9 @@ public class ConcreteResponse implements Response {
     public void setContent(byte[] content) {
         this.content = new String(content);
         if ((this.content.startsWith("{") && this.content.endsWith("}")) || (this.content.startsWith("[") && this.content.endsWith("]")))
-            setContentType(CONTENT_TYPE_APPLICATION_JSON);
+            setContentType(CONTENT_TYPE_APPLICATION_JSON.toString());
         else if (!this.content.equals("")) {
-            setContentType(CONTENT_TYPE_TEXT_PLAIN);
+            setContentType(CONTENT_TYPE_TEXT_PLAIN.toString());
         }
         if (this.content.equals(""))
             setStatus(SC_204);
@@ -113,9 +114,9 @@ public class ConcreteResponse implements Response {
             }
             content = textBuilder.toString();
             if ((content.startsWith("{") && content.endsWith("}")) || (content.startsWith("[") && content.endsWith("]")))
-                setContentType(CONTENT_TYPE_APPLICATION_JSON);
+                setContentType(CONTENT_TYPE_APPLICATION_JSON.toString());
             else if (!content.equals("")) {
-                setContentType(CONTENT_TYPE_TEXT_PLAIN);
+                setContentType(CONTENT_TYPE_TEXT_PLAIN.toString());
             }
         } catch (IOException e) {
             e.printStackTrace();

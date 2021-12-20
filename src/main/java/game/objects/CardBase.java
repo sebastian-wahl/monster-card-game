@@ -74,6 +74,6 @@ public abstract class CardBase implements Comparable<CardBase> {
 
     @Override
     public String toString() {
-        return "Name: " + this.name + ", damage: " + this.damage + ", elementType: " + this.elementType.toString();
+        return "{\"Id\": \"" + this.id.toString() + "\", \"Name\": \"" + this.name + "\", \"Damage\": " + this.damage + ", \"Elementtype\": \"" + this.elementType.toString() + "\", \"Rarity\": \"" + this.cardRarity.toString() + "\"}";
     }
 }

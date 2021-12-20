@@ -41,4 +41,23 @@ public class Package {
 
         return Collections.unmodifiableList(generatedCards);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("{");
+        if (!this.cards.isEmpty()) {
+            sb.append("\"Package\": ");
+            sb.append(this.cards.size() > 1 ? "[" : "");
+            for (CardBase cardBase : this.cards) {
+                sb.append(cardBase.toString());
+            }
+            sb.append(this.cards.size() > 1 ? "]" : "");
+        } else {
+            sb.append("\"Package\": \"Empty\"");
+        }
+        sb.append("}");
+        return sb.toString();
+    }
 }

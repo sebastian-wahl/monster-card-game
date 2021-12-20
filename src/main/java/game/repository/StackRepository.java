@@ -2,6 +2,7 @@ package game.repository;
 
 import game.objects.CardBase;
 import game.objects.Package;
+import game.objects.Stack;
 import game.objects.User;
 
 import java.sql.PreparedStatement;
@@ -66,18 +67,19 @@ public class StackRepository extends RepositoryBase {
 
 
     public boolean areCardsOwnedByUser(User user, List<CardBase> cardBases) {
-        Optional<List<CardBase>> stackOpt = this.getUserStack(user);
-        return stackOpt.map(bases -> bases.containsAll(cardBases)).orElse(false);
+        Optional<User> userOpt = this.getUserStack(user);
+        return userOpt.map(userobj -> user.getStack().containsAll(cardBases)).orElse(false);
     }
 
-    public Optional<List<CardBase>> getUserStack(User user) {
+    public Optional<User> getUserStack(User user) {
         try (PreparedStatement statement = this.dbConnection.prepareStatement(GET_STACK_SQL)) {
             statement.setString(1, user.getUsername());
 
             ResultSet rs = statement.executeQuery();
 
             List<CardBase> stack = this.getCardsFromResultSet(rs);
-            return Optional.of(stack);
+            user.setStack(new Stack(stack));
+            return Optional.of(user);
         } catch (SQLException ex) {
             ex.printStackTrace();
         }

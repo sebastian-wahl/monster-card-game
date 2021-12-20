@@ -1,7 +1,9 @@
 package game.server;
 
 import game.controller.ControllerBase;
+import game.controller.DeckController;
 import game.controller.PackageController;
+import game.controller.StackController;
 import game.controller.battlecontroller.BattleController;
 import game.controller.battlecontroller.BattleQueueHandler;
 import game.controller.usercontroller.AddUserController;
@@ -46,8 +48,8 @@ public class ClientGameRunner implements Runnable {
             case SESSIONS -> new LoginUserController(request, repositoryHelper);
             case PACKAGES -> new PackageController(request, repositoryHelper);
             //case TRANSACTIONS -> new LoginUserController(request, repositoryHelper);
-            case CARDS -> new LoginUserController(request, repositoryHelper);
-            case DECK -> new LoginUserController(request, repositoryHelper);
+            case CARDS -> new StackController(request, repositoryHelper);
+            case DECK -> new DeckController(request, repositoryHelper);
             case STATS -> new LoginUserController(request, repositoryHelper);
             case SCORE -> new LoginUserController(request, repositoryHelper);
             case TRADINGS -> new LoginUserController(request, repositoryHelper);

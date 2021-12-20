@@ -29,7 +29,14 @@ public class PackageController extends ControllerBase {
                     Package pack = new Package();
                     user.setCoins(user.getCoins() - Package.PACKAGE_COST);
 
-                    this.repositoryHelper.getStackRepository().addCardsToUserStack(user, pack);
+                    userOpt = this.repositoryHelper.getStackRepository().addCardsToUserStack(user, pack);
+                    if (userOpt.isPresent()) {
+                        response.setStatus(StatusCodeEnum.SC_200);
+                        response.setContent(pack.toString());
+                    } else {
+                        response.setStatus(StatusCodeEnum.SC_500);
+                    }
+
                 } else {
                     response.setContent("Not enough coins for this action.");
                     response.setStatus(StatusCodeEnum.SC_400);
@@ -38,9 +45,9 @@ public class PackageController extends ControllerBase {
                 // "add" package
                 // ToDo
             }
+        } else {
+            response.setStatus(StatusCodeEnum.SC_401);
         }
-
-        response.setStatus(StatusCodeEnum.SC_500);
         return response;
     }
 }

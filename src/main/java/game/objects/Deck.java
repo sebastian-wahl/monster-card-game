@@ -52,4 +52,23 @@ public class Deck {
     public List<CardBase> getCards() {
         return this.deck;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("{");
+        if (!this.deck.isEmpty()) {
+            sb.append("\"Deck\": ");
+            sb.append(this.deck.size() > 1 ? "[" : "");
+            for (CardBase cardBase : this.deck) {
+                sb.append(cardBase.toString());
+            }
+            sb.append(this.deck.size() > 1 ? "]" : "");
+        } else {
+            sb.append("\"Deck\": \"Empty\"");
+        }
+        sb.append("}");
+        return sb.toString();
+    }
 }

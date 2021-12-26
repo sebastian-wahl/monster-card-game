@@ -75,8 +75,8 @@ public class ConcreteRequest implements Request {
                 }
                 break;
             case DECK:
-                if (this.method == HttpMethod.POST) {
-                    this.model = o.readValue(this.body, DeckModel.class);
+                if (this.method == HttpMethod.PUT) {
+                    this.model = DeckModel.builder().ids(o.readValue(this.body, String[].class)).build();
                 }
                 break;
             case TRADINGS:
@@ -94,9 +94,9 @@ public class ConcreteRequest implements Request {
             while ((line = streamReader.readLine()) != null) {
                 if (line.isBlank()) break;//Stop loop when end of header is reached
 
-                String[] headerSegments = line.split(":");
+                String[] headerSegments = line.split(":", 2);
                 // .toLowerCase() for simplicity
-                headersOut.put(headerSegments[0].toLowerCase(), headerSegments[1].trim());
+                headersOut.put(headerSegments[0], headerSegments[1].trim());
             }
         } catch (IOException e) {
             e.printStackTrace();

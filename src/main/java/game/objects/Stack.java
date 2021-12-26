@@ -42,8 +42,11 @@ public class Stack {
         if (!this.stack.isEmpty()) {
             sb.append("\"Stack\": ");
             sb.append(this.stack.size() > 1 ? "[" : "");
-            for (CardBase cardBase : this.stack) {
-                sb.append(cardBase.toString());
+            for (int i = 0; i < this.stack.size(); i++) {
+                sb.append(this.stack.get(i).toString());
+                if (i < this.stack.size() - 1) {
+                    sb.append(", ");
+                }
             }
             sb.append(this.stack.size() > 1 ? "]" : "");
         } else {

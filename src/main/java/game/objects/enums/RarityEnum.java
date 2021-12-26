@@ -14,7 +14,7 @@ public enum RarityEnum {
     SLIGHTLY_RARE(61, 79, "Slightly Rare"),
     MODERATELY_RARE(80, 89, "Moderately Rare"),
     RARE(90, 95, "Rare"),
-    VERY_RARE(96, 99, "Very Rare"),
+    VERY_RARE(96, 100, "Very Rare"),
     ULTIMATELY_RARE(100, 100, "Ultimately Rare");
 
     public static final int MAX_RARITY = 100;

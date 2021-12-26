@@ -1,12 +1,15 @@
 package game.controller.battlecontroller;
 
+import game.helper.RepositoryHelper;
+import game.helper.battle.BattleReportHelper;
+import game.helper.battle.Round;
 import game.http.enums.StatusCodeEnum;
 import game.http.response.ConcreteResponse;
 import game.http.response.Response;
 import game.objects.CardBase;
 import game.objects.Deck;
+import game.objects.User;
 import game.objects.enums.FightOutcome;
-import game.repository.RepositoryHelper;
 import lombok.Synchronized;
 
 import java.util.*;
@@ -42,7 +45,7 @@ public class BattleQueueHandler {
         return output;
     }
 
-    private void handleBattle(List<String> usernames) {
+    protected void handleBattle(List<String> usernames) {
         Deck playerOneDeck;
         Optional<Deck> playerOneOpt = this.repositoryHelper.getDeckRepository().getDeckByUsername(usernames.get(0));
         if (playerOneOpt.isPresent()) {
@@ -70,9 +73,7 @@ public class BattleQueueHandler {
             }
             return;
         }
-
-        StringBuilder log = new StringBuilder();
-        log.append("Starting battle between ").append(usernames.get(0)).append(" and ").append(usernames.get(1)).append(":");
+        BattleReportHelper rh = new BattleReportHelper();
 
         int counter = 0;
         CardBase attackerCard;
@@ -82,55 +83,49 @@ public class BattleQueueHandler {
 
             attackerCard = playerOneDeck.getRandomCard();
             defenderCard = playerTwoDeck.getRandomCard();
-
+            // fight
             fightOutcome = attackerCard.attack(defenderCard);
-            log.append("Round ").append(counter + 1).append("\n");
-            log.append(usernames.get(0)).append(": ").append(attackerCard.getName()).append(" (Damage: ").append(attackerCard.getDamage()).append(", Type: ").append(attackerCard.getElementType().toString()).append(")")
-                    .append(" VS ")
-                    .append(usernames.get(1)).append(": ").append(defenderCard.getName()).append(" (Damage: ").append(defenderCard.getDamage()).append(", Type: ").append(defenderCard.getElementType().toString()).append(")");
-            if (fightOutcome == FightOutcome.ATTACKER) {
-                log.append("\nOutcome -> Winner: ").append(usernames.get(0));
-                playerOneDeck.addCard(defenderCard);
-                playerTwoDeck.removeCard(defenderCard);
-            } else if (fightOutcome == FightOutcome.DEFENDER) {
-                log.append("\nOutcome -> Winner: ").append(usernames.get(1));
-                playerTwoDeck.addCard(attackerCard);
-                playerOneDeck.removeCard(attackerCard);
-            } else {
-                // Tie
-                log.append("\nOutcome -> Round ended in a draw!");
-            }
 
-            log.append("\n");
+            // add round to logger
+            rh.addRound(Round.builder().roundNumber(counter + 1).monster1(attackerCard).monster2(defenderCard)
+                    .fightOutcome(fightOutcome).user1(usernames.get(0)).user2(usernames.get(1)).build());
+
             counter++;
         }
 
-        String responseContent;
         if (playerOneDeck.getDeckSize() > playerTwoDeck.getDeckSize()) {
-            log.append(usernames.get(0)).append(" won the battle");
+            rh.setFightOutcome(FightOutcome.ATTACKER);
             updateScore(usernames.get(0), usernames.get(1));
-            responseContent = "{\"Winner\": \"" + usernames.get(0) + "\", \"fullReport\":\"" + log.toString() + "\"}";
         } else if (playerOneDeck.getDeckSize() < playerTwoDeck.getDeckSize()) {
-            log.append(usernames.get(1)).append(" won the battle");
-            updateScore(usernames.get(0), usernames.get(1));
-            responseContent = "{\"Winner\": \"" + usernames.get(1) + "\", \"fullReport\":\"" + log.toString() + "\"}";
+            updateScore(usernames.get(1), usernames.get(0));
+            rh.setFightOutcome(FightOutcome.DEFENDER);
         } else {
-            log.append("Game ended in a Tie");
             updateScoreTie(usernames);
-            responseContent = "{\"Winner\": \"Game ended in a Tie\", \"fullReport\":\"" + log.toString() + "\"}";
+            rh.setFightOutcome(FightOutcome.TIE);
         }
 
-        Response response = new ConcreteResponse();
-        response.setContent(responseContent);
-        response.setStatus(StatusCodeEnum.SC_200);
+        // Get updated users
+        Optional<User> userOpt1 = this.repositoryHelper.getUserRepository().getUser(usernames.get(0));
+        Optional<User> userOpt2 = this.repositoryHelper.getUserRepository().getUser(usernames.get(1));
+        if (userOpt1.isPresent() && userOpt2.isPresent()) {
+            rh.setUser1(userOpt1.get());
+            rh.setUser2(userOpt2.get());
+            Response response = new ConcreteResponse();
+            response.setContent(rh.toString());
+            response.setStatus(StatusCodeEnum.SC_200);
 
-        for (String user : usernames) {
-            this.completableFutureMap.get(user).complete(response);
+            for (String user : usernames) {
+                this.completableFutureMap.get(user).complete(response);
+            }
+        } else {
+            for (String user : usernames) {
+                this.completableFutureMap.get(user).complete(new ConcreteResponse());
+            }
         }
     }
 
-    private void updateScore(String winningPlayer, String loosingPlayer) {
-        if (this.repositoryHelper.getUserRepository().updateElo(winningPlayer, loosingPlayer)) {
+    private void updateScore(String winningPlayer, String losingPlayer) {
+        if (this.repositoryHelper.getUserRepository().updateEloAndGamesPlayed(winningPlayer, losingPlayer)) {
             System.out.println("Score updated");
         } else {
             System.out.println("Error when updating");
@@ -138,6 +133,10 @@ public class BattleQueueHandler {
     }
 
     private void updateScoreTie(List<String> players) {
-
+        if (this.repositoryHelper.getUserRepository().updateTieAndGamesPlayed(players)) {
+            System.out.println("Tie: Score updated");
+        } else {
+            System.out.println("Tie: Error when updating");
+        }
     }
 }

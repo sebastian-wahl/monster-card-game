@@ -2,7 +2,7 @@ package game.server;
 
 import game.controller.battlecontroller.BattleQueueHandler;
 import game.db.DatabaseConnectionProvider;
-import game.repository.RepositoryHelper;
+import game.helper.RepositoryHelper;
 
 import java.io.IOException;
 import java.net.ServerSocket;

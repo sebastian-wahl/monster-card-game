@@ -1,11 +1,11 @@
 package game.controller;
 
+import game.helper.RepositoryHelper;
 import game.http.enums.StatusCodeEnum;
 import game.http.request.Request;
 import game.http.response.ConcreteResponse;
 import game.http.response.Response;
 import game.objects.User;
-import game.repository.RepositoryHelper;
 
 import java.util.Optional;
 
@@ -31,6 +31,7 @@ public class StackController extends ControllerBase {
             }
         } else {
             response.setStatus(StatusCodeEnum.SC_401);
+            response.setContent("Token is invalid. Please login again.");
         }
         return response;
     }

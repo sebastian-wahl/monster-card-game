@@ -1,12 +1,12 @@
 package game.controller.usercontroller;
 
 import game.controller.ControllerBase;
+import game.helper.RepositoryHelper;
 import game.http.models.UserModel;
 import game.http.request.Request;
 import game.http.response.ConcreteResponse;
 import game.http.response.Response;
 import game.objects.exceptions.repositories.UserOrPasswordEmptyException;
-import game.repository.RepositoryHelper;
 
 import static game.http.enums.StatusCodeEnum.*;
 

@@ -1,18 +1,16 @@
 package game.server;
 
-import game.controller.ControllerBase;
-import game.controller.DeckController;
-import game.controller.PackageController;
-import game.controller.StackController;
+import game.controller.*;
 import game.controller.battlecontroller.BattleController;
 import game.controller.battlecontroller.BattleQueueHandler;
 import game.controller.usercontroller.AddUserController;
 import game.controller.usercontroller.LoginUserController;
+import game.controller.usercontroller.UserStatController;
+import game.helper.RepositoryHelper;
 import game.http.request.ConcreteRequest;
 import game.http.request.Request;
 import game.http.response.Response;
 import game.http.url.PathEnum;
-import game.repository.RepositoryHelper;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -50,8 +48,8 @@ public class ClientGameRunner implements Runnable {
             //case TRANSACTIONS -> new LoginUserController(request, repositoryHelper);
             case CARDS -> new StackController(request, repositoryHelper);
             case DECK -> new DeckController(request, repositoryHelper);
-            case STATS -> new LoginUserController(request, repositoryHelper);
-            case SCORE -> new LoginUserController(request, repositoryHelper);
+            case STATS -> new UserStatController(request, repositoryHelper);
+            case SCORE -> new ScoreboardController(request, repositoryHelper);
             case TRADINGS -> new LoginUserController(request, repositoryHelper);
             case NOMATCH -> throw new IllegalArgumentException("Invalid path: " + path);
         };

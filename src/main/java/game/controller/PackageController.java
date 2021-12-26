@@ -1,12 +1,12 @@
 package game.controller;
 
+import game.helper.RepositoryHelper;
 import game.http.enums.StatusCodeEnum;
 import game.http.request.Request;
 import game.http.response.ConcreteResponse;
 import game.http.response.Response;
 import game.objects.Package;
 import game.objects.User;
-import game.repository.RepositoryHelper;
 
 import java.util.Optional;
 
@@ -29,12 +29,15 @@ public class PackageController extends ControllerBase {
                     Package pack = new Package();
                     user.setCoins(user.getCoins() - Package.PACKAGE_COST);
 
-                    userOpt = this.repositoryHelper.getStackRepository().addCardsToUserStack(user, pack);
-                    if (userOpt.isPresent()) {
-                        response.setStatus(StatusCodeEnum.SC_200);
-                        response.setContent(pack.toString());
-                    } else {
-                        response.setStatus(StatusCodeEnum.SC_500);
+                    // set response to error and change if everything worked out
+                    response.setStatus(StatusCodeEnum.SC_500);
+                    if (this.repositoryHelper.getCardRepositor().addCards(pack.cards)) {
+                        Optional<User> userUpdateOpt = this.repositoryHelper.getUserRepository().update(user);
+                        Optional<User> userAddStackOpt = this.repositoryHelper.getStackRepository().addCardsToUserStack(user, pack);
+                        if (userUpdateOpt.isPresent() && userAddStackOpt.isPresent()) {
+                            response.setStatus(StatusCodeEnum.SC_200);
+                            response.setContent(pack.toString());
+                        }
                     }
 
                 } else {
@@ -47,6 +50,7 @@ public class PackageController extends ControllerBase {
             }
         } else {
             response.setStatus(StatusCodeEnum.SC_401);
+            response.setContent("Token is invalid. Please login again.");
         }
         return response;
     }

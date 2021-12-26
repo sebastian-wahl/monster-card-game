@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
  */
 public class Package {
     public final List<CardBase> cards;
-    public static final int PACKAGE_COST = 20;
+    public static final int PACKAGE_COST = 4;
     public static final int PACKAGE_SIZE = 5;
 
     public Package() {
@@ -34,8 +34,9 @@ public class Package {
             List<CardsEnum> cardsForRarity = Arrays.stream(CardsEnum.values())
                     .filter(cardsEnum -> cardsEnum.getRarity().getRarityStart() <= rarity && rarity <= cardsEnum.getRarity().getRarityEnd())
                     .collect(Collectors.toList());
-            // Create card and add to list
-            generatedCards.add(CardFactory.createCard(cardsForRarity.get(rand.nextInt(cardsForRarity.size()))));
+            // Create card and add to list (with no id specified)
+
+            generatedCards.add(CardFactory.createCard(cardsForRarity.get(rand.nextInt(cardsForRarity.size())), null));
 
         }
 
@@ -50,8 +51,11 @@ public class Package {
         if (!this.cards.isEmpty()) {
             sb.append("\"Package\": ");
             sb.append(this.cards.size() > 1 ? "[" : "");
-            for (CardBase cardBase : this.cards) {
-                sb.append(cardBase.toString());
+            for (int i = 0; i < this.cards.size(); i++) {
+                sb.append(this.cards.get(i).toString());
+                if (i < this.cards.size() - 1) {
+                    sb.append(", ");
+                }
             }
             sb.append(this.cards.size() > 1 ? "]" : "");
         } else {

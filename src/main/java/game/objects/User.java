@@ -4,8 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
-import java.sql.Timestamp;
-
 @AllArgsConstructor
 @Data
 @Builder
@@ -16,16 +14,13 @@ public class User {
     private String password;
     private String displayName;
     private String bio;
+    private String image;
 
     private int coins;
     private double elo;
 
     // stats
     UserStatistics userStatistics;
-
-    // security
-    private String securityToken;
-    private Timestamp securityTokenTimestamp;
 
     /* Advanced attr. */
     private Stack stack;
@@ -46,26 +41,64 @@ public class User {
         this.password = user.getPassword();
         this.displayName = user.getDisplayName();
         this.bio = user.getBio();
+        this.image = user.getImage();
         this.coins = user.getCoins();
         this.elo = user.getElo();
-        this.securityToken = user.getSecurityToken();
-        this.securityTokenTimestamp = user.getSecurityTokenTimestamp();
 
         this.stack = user.getStack();
         this.deck = user.getDeck();
 
-        this.userStatistics = user.getUserStatistics();
+        this.userStatistics = user.getUserStatistics().copy();
     }
 
-    public void buyPackage() {
-        if (coins - Package.PACKAGE_COST >= 0) {
-            this.stack.addPackageToStack(new Package());
-        } else {
-            // Not enough coins
-        }
-    }
-
+    /**
+     * @return Returns a deep copy of this object
+     */
     public User copy() {
         return new User(this);
+    }
+
+    public int compareEloTo(User another) {
+        if (this.elo == another.getElo())
+            return 0;
+        return this.elo > another.elo ? 1 : -1;
+    }
+
+    private String replaceNullWithUndefined(String text) {
+        return text != null ? text : "Undefined";
+    }
+
+    public String toNameString() {
+        return "{\"User\": {" +
+                "\"Username\": \"" + this.username + "\", " +
+                "\"Displayname\": \"" + this.replaceNullWithUndefined(this.displayName) + "\"" +
+                "}}";
+    }
+
+    @Override
+    public String toString() {
+        return "{ \"User\": {" +
+                "\"Username\": \"" + this.username + "\", " +
+                "\"Display Name\": \"" + replaceNullWithUndefined(this.displayName) + "\", " +
+                "\"Bio\": \"" + replaceNullWithUndefined(this.bio) + "\", " +
+                "\"Image\": \"" + replaceNullWithUndefined(this.image) + "\", " +
+                "\"Elo\": \"" + this.elo + "\", " +
+                "\"Statistics:\": { \"Games played\": " + this.userStatistics.getGamesPlayed() + ", " +
+                "\"Total Wins\": " + this.userStatistics.getWinCount() + ", " +
+                "\"Total Loses\": " + this.userStatistics.getLoseCount() + ", " +
+                "\"Win/Lose Ratio:\": " + this.userStatistics.getWinRatio() + ", " +
+                "\"Total Ties\": " + this.userStatistics.getTieCount() + "}" +
+                "}}";
+    }
+
+    public String getStatisticString() {
+        return "{\"Statistics:\": { " +
+                "\"Elo\": " + this.elo + ", " +
+                "\"Games played\": " + this.userStatistics.getGamesPlayed() + ", " +
+                "\"Total Wins\": " + this.userStatistics.getWinCount() + ", " +
+                "\"Total Loses\": " + this.userStatistics.getLoseCount() + ", " +
+                "\"Win/Lose Ratio:\": " + this.userStatistics.getWinRatio() + ", " +
+                "\"Total Ties\": " + this.userStatistics.getTieCount() +
+                "}}";
     }
 }

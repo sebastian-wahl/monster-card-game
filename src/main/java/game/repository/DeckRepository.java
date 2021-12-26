@@ -1,35 +1,41 @@
 package game.repository;
 
-import game.objects.CardBase;
+import game.db.DatabaseConnectionProvider;
+import game.http.models.DeckModel;
 import game.objects.Deck;
 import game.objects.User;
+import lombok.Synchronized;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
 
 public class DeckRepository extends RepositoryBase {
+    private Connection db2Connection;
 
     private static final String GET_CARDS_FROM_DECK_SQL = "SELECT * FROM card WHERE id IN (SELECT card_id FROM deck WHERE username=?);";
 
 
     private static final String SET_DECK_SQL = "DELETE FROM deck WHERE username=?; INSERT INTO deck (card_id, username) " +
             "VALUES (?, ?)," +
-            "VALUES (?, ?)," +
-            "VALUES (?, ?)," +
-            "VALUES (?, ?);";
+            "(?, ?)," +
+            "(?, ?)," +
+            "(?, ?);";
 
     public DeckRepository() {
         super();
     }
 
+    @Synchronized
     public Optional<Deck> getDeckByUsername(String username) {
-        try (PreparedStatement preparedStatement = this.dbConnection.prepareStatement(GET_CARDS_FROM_DECK_SQL)) {
+        try (Connection connection = DatabaseConnectionProvider.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(GET_CARDS_FROM_DECK_SQL);) {
             preparedStatement.setString(1, username);
-            ResultSet rs = preparedStatement.executeQuery();
-
-            return Optional.of(new Deck(getCardsFromResultSet(rs)));
+            try (ResultSet rs = preparedStatement.executeQuery()) {
+                return Optional.of(new Deck(getCardsFromResultSet(rs)));
+            }
         } catch (SQLException | IllegalArgumentException ex) {
             ex.printStackTrace();
         }
@@ -40,24 +46,29 @@ public class DeckRepository extends RepositoryBase {
      * @param user User for this deck
      * @param deck should only be cards that the user also owns
      */
-    public Optional<User> setUserDeck(User user, Deck deck) {
-        if (user.getDeck().getDeckSize() > Deck.INIT_MAX_DECK_SIZE) {
+    @Synchronized
+    public Optional<User> setUserDeck(User user, DeckModel deck) {
+        if (deck.getIds().length > Deck.INIT_MAX_DECK_SIZE) {
             return Optional.empty();
         }
-        try (PreparedStatement statement = this.dbConnection.prepareStatement(SET_DECK_SQL)) {
+        try (Connection connection = DatabaseConnectionProvider.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SET_DECK_SQL)) {
             statement.setString(1, user.getUsername());
 
             int i = 2;
-            for (CardBase cardBase : deck.getCards()) {
-                statement.setString(i, cardBase.getId().toString());
+            for (String id : deck.getDeckIds()) {
+                statement.setString(i, id);
                 statement.setString(i + 1, user.getUsername());
-                i++;
+                i += 2;
             }
-            user.setDeck(deck);
-
             int updates = statement.executeUpdate();
             System.out.println(updates + " row(s) updated");
-            return Optional.of(user);
+
+            Optional<Deck> deckOpt = this.getDeckByUsername(user.getUsername());
+            if (deckOpt.isPresent()) {
+                user.setDeck(deckOpt.get());
+                return Optional.of(user);
+            }
         } catch (SQLException ex) {
             ex.printStackTrace();
         }

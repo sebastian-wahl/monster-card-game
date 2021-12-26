@@ -22,6 +22,7 @@ public abstract class CardBase implements Comparable<CardBase> {
     public final RarityEnum cardRarity;
 
     public CardBase(String name, double damage, ElementType elementType, RarityEnum cardRarity) {
+        this.id = UUID.randomUUID();
         this.name = name;
         this.damage = damage;
         this.elementType = elementType;
@@ -29,6 +30,10 @@ public abstract class CardBase implements Comparable<CardBase> {
     }
 
     public abstract FightOutcome attack(CardBase competitor);
+
+    public void setId(String id) {
+        this.id = UUID.fromString(id);
+    }
 
     protected FightOutcome fightFire(CardBase competitor) {
         return switch (getElementType()) {
@@ -74,6 +79,6 @@ public abstract class CardBase implements Comparable<CardBase> {
 
     @Override
     public String toString() {
-        return "{\"Id\": \"" + this.id.toString() + "\", \"Name\": \"" + this.name + "\", \"Damage\": " + this.damage + ", \"Elementtype\": \"" + this.elementType.toString() + "\", \"Rarity\": \"" + this.cardRarity.toString() + "\"}";
+        return "{\"Card\": {\"Id\": \"" + this.id.toString() + "\", \"Name\": \"" + this.name + "\", \"Damage\": " + this.damage + ", \"Elementtype\": \"" + this.elementType.toString() + "\", \"Rarity\": \"" + this.cardRarity.toString() + "\"} }";
     }
 }

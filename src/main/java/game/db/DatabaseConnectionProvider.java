@@ -10,6 +10,9 @@ public class DatabaseConnectionProvider {
     static final String USER = "mcg_user";
     static final String PASS = "password";
 
+    private DatabaseConnectionProvider() {
+    }
+
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(DB_URL, USER, PASS);
     }

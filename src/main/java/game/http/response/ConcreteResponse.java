@@ -11,8 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static game.http.HttpReady.*;
-import static game.http.enums.StatusCodeEnum.SC_204;
-import static game.http.enums.StatusCodeEnum.SC_500;
+import static game.http.enums.StatusCodeEnum.*;
 import static game.server.Server.DEFAUlT_SERVER_NAME;
 
 public class ConcreteResponse implements Response {
@@ -27,6 +26,7 @@ public class ConcreteResponse implements Response {
 
     public ConcreteResponse() {
         headers = new HashMap<>();
+        this.status = SC_400;
     }
 
 
@@ -36,6 +36,10 @@ public class ConcreteResponse implements Response {
             return Integer.parseInt(headers.get(CONTENT_LENGTH_KEY.toString()));
         else
             return 0;
+    }
+
+    private void setContentLength() {
+        this.headers.put(CONTENT_LENGTH_KEY.toString(), "" + this.content.length());
     }
 
     @Override
@@ -88,6 +92,7 @@ public class ConcreteResponse implements Response {
         else if (!this.content.equals("")) {
             setContentType(CONTENT_TYPE_TEXT_PLAIN.toString());
         }
+        this.setContentLength();
         if (this.content.equals(""))
             setStatus(SC_204);
     }
@@ -100,6 +105,7 @@ public class ConcreteResponse implements Response {
         else if (!this.content.equals("")) {
             setContentType(CONTENT_TYPE_TEXT_PLAIN.toString());
         }
+        this.setContentLength();
         if (this.content.equals(""))
             setStatus(SC_204);
     }
@@ -121,9 +127,11 @@ public class ConcreteResponse implements Response {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        this.setContentLength();
         if (content.equals(""))
             setStatus(SC_204);
     }
+
 
     @Override
     public void send(OutputStream outputStream) {
@@ -144,13 +152,14 @@ public class ConcreteResponse implements Response {
      */
     public String buildResponse() {
         StringBuilder response = new StringBuilder();
-        response.append("HTTP-Version = HTTP/1.1 ").append(status.toString()).append("\n");
+        response.append("HTTP/1.1 ").append(status.toString()).append("\n");
         if (!headers.isEmpty())
             headers.forEach((k, v) -> response.append(k).append(": ").append(v).append("\n"));
         if (content != null && !content.isEmpty()) {
             response.append("\n");
             response.append(content);
         }
+        response.append("Connection: Closed");
         return response.toString();
     }
 }

@@ -1,8 +1,8 @@
 package game.controller;
 
+import game.helper.RepositoryHelper;
 import game.http.request.Request;
 import game.http.response.Response;
-import game.repository.RepositoryHelper;
 
 public abstract class ControllerBase {
 

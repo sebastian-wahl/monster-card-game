@@ -61,8 +61,11 @@ public class Deck {
         if (!this.deck.isEmpty()) {
             sb.append("\"Deck\": ");
             sb.append(this.deck.size() > 1 ? "[" : "");
-            for (CardBase cardBase : this.deck) {
-                sb.append(cardBase.toString());
+            for (int i = 0; i < this.deck.size(); i++) {
+                sb.append(this.deck.get(i).toString());
+                if (i < this.deck.size() - 1) {
+                    sb.append(", ");
+                }
             }
             sb.append(this.deck.size() > 1 ? "]" : "");
         } else {

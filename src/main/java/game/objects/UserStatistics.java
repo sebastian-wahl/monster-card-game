@@ -1,13 +1,11 @@
 package game.objects;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
+import lombok.*;
 
 @Builder
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class UserStatistics {
     @Getter
     private int winCount;
@@ -15,9 +13,6 @@ public class UserStatistics {
     private int loseCount;
     @Getter
     private int tieCount;
-
-    public UserStatistics() {
-    }
 
     public void addWin() {
         this.winCount++;
@@ -29,6 +24,18 @@ public class UserStatistics {
 
     public void addTie() {
         this.tieCount++;
+    }
+
+    public double getWinRatio() {
+        return this.winCount / (this.loseCount + 0.0);
+    }
+
+    public int getGamesPlayed() {
+        return this.winCount + this.loseCount + this.tieCount;
+    }
+
+    public UserStatistics copy() {
+        return new UserStatistics(this.winCount, this.loseCount, this.tieCount);
     }
 
 }

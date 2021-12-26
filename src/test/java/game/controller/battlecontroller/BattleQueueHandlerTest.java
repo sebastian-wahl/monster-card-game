@@ -1,39 +1,31 @@
-package game.controller;
+package game.controller.battlecontroller;
 
-import game.controller.battlecontroller.BattleController;
-import game.controller.battlecontroller.BattleQueueHandler;
 import game.helper.RepositoryHelper;
+import game.http.response.Response;
 import game.objects.Deck;
-import game.objects.exceptions.DeckNotFoundException;
 import game.objects.monstercards.*;
 import game.objects.spellcards.FireSpell;
 import game.objects.spellcards.WaterSpell;
 import game.repository.DeckRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.lenient;
 
+class BattleQueueHandlerTest {
 
-@ExtendWith(MockitoExtension.class)
-class BattleControllerTest {
-
-    @Mock
-    private BattleQueueHandler battleQueueHandler;
     @Mock
     private DeckRepository deckRepository;
     @Mock
     private RepositoryHelper repositoryHelper;
 
-    private BattleController battleController;
+    private BattleQueueHandler battleQueueHandler;
 
     private static final String USERNAME_1 = "User1";
     private static final String USERNAME_2 = "User2";
@@ -54,9 +46,6 @@ class BattleControllerTest {
             new FireWizard()
     ));
 
-    private void setUpBattle(String user1, String user2) {
-    }
-
     @BeforeEach
     void setUp() {
         lenient().when(this.repositoryHelper.getDeckRepository()).thenReturn(deckRepository);
@@ -64,24 +53,15 @@ class BattleControllerTest {
         lenient().when(deckRepository.getDeckByUsername(USERNAME_2)).thenReturn(Optional.of(user2Deck));
         lenient().when(deckRepository.getDeckByUsername(USERNAME_3)).thenReturn(Optional.empty());
         // empty request since the battle controller just needs the battleQueue
-        this.battleController = new BattleController(null, repositoryHelper, battleQueueHandler);
+        this.battleQueueHandler = new BattleQueueHandler(repositoryHelper);
     }
 
     @Test
     void testHandleBattle() {
-        this.setUpBattle(USERNAME_1, USERNAME_2);
-        //assertDoesNotThrow(() -> this.battleController.handleBattle());
+        CompletableFuture<Response> futureBattleUser1 = this.battleQueueHandler.addUserToBattleQueueAndHandleBattle(USERNAME_1);
+        CompletableFuture<Response> futureBattleUser2 = this.battleQueueHandler.addUserToBattleQueueAndHandleBattle(USERNAME_2);
+
+
+        assertThat(futureBattleUser1);
     }
-
-    @Test
-    void testHandleBattleExpectDeckNotFoundException() {
-
-        DeckNotFoundException ex = assertThrows(DeckNotFoundException.class, () -> {
-
-            //this.battleController.handleBattle();
-        });
-        assertThat(ex).hasMessageContaining(USERNAME_3);
-    }
-
-
 }

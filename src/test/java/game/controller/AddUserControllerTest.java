@@ -1,10 +1,10 @@
 package game.controller;
 
 import game.controller.usercontroller.AddUserController;
+import game.helper.RepositoryHelper;
 import game.http.models.UserModel;
 import game.http.request.Request;
 import game.http.response.Response;
-import game.repository.RepositoryHelper;
 import game.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

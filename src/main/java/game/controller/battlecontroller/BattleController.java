@@ -1,12 +1,12 @@
 package game.controller.battlecontroller;
 
 import game.controller.ControllerBase;
+import game.helper.RepositoryHelper;
 import game.http.HttpReady;
 import game.http.enums.StatusCodeEnum;
 import game.http.request.Request;
 import game.http.response.ConcreteResponse;
 import game.http.response.Response;
-import game.repository.RepositoryHelper;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;

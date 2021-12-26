@@ -4,35 +4,41 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
+import com.auth0.jwt.exceptions.JWTDecodeException;
+import com.auth0.jwt.exceptions.SignatureVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import game.db.DatabaseConnectionProvider;
 import game.http.models.UserModel;
 import game.objects.User;
 import game.objects.UserStatistics;
 import jBCrypt.BCrypt;
 import lombok.Synchronized;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.time.Instant;
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class UserRepository extends RepositoryBase {
 
     private static final int DEFAULT_COINS = 20;
     private static final int DEFAULT_ELO = 100;
 
-    private static final String ADD_USER_SQL = "INSERT INTO mcg_user (username, password, display_name, bio, coins, elo) VALUES (?, ?, ?, ?, ?, ?);";
+    private static final String ADD_USER_SQL = "INSERT INTO mcg_user (username, password, display_name, bio, image, coins, elo) VALUES (?, ?, ?, ?, ?, ?, ?);";
     private static final String GET_USER_SQL = "SELECT * FROM mcg_user WHERE username = ?;";
+    private static final String GET_ALL_USER_SQL = "SELECT * FROM mcg_user;";
 
-    private static final String UPDATE_USER_SQL = "UPDATE mcg_user SET display_name = ?, bio = ?, coins = ?, elo = ?, security_token = ?, security_token_date = ?, win_count = ?, lose_count = ?, tie_count = ? WHERE username = ?;";
+    private static final String UPDATE_USER_SQL = "UPDATE mcg_user SET display_name = ?, bio = ?, image = ?, coins = ?, elo = ?, win_count = ?, lose_count = ?, tie_count = ? WHERE username = ?;";
 
     private static final String GET_USER_TOKEN_SQL = "SELECT * from mcg_user WHERE security_token = ?;";
 
     // elo K-factor, mean maximum amount of elo points that the user can gain or loose;
     private static final int K_FACTOR = 16;
+    public static final int TOKEN_VALID_PERIOD_SECONDS = 3600;
 
     private final Algorithm algorithm;
 
@@ -42,24 +48,40 @@ public class UserRepository extends RepositoryBase {
     }
 
     @Synchronized
-    public boolean addUserToDb(UserModel userModel) {
-        if (this.dbConnection != null) {
-            try (PreparedStatement addUserStatement = this.dbConnection.prepareStatement(ADD_USER_SQL)) {
-                addUserStatement.setString(1, userModel.getUsername());
-                addUserStatement.setString(2, this.hashPassword(userModel.getPassword()));
-                addUserStatement.setString(3, userModel.getDisplayName());
-                addUserStatement.setString(4, userModel.getBio());
-                // ToDo add image
-                addUserStatement.setInt(5, DEFAULT_COINS);
-                addUserStatement.setInt(6, DEFAULT_ELO);
-
-                int suc = addUserStatement.executeUpdate();
-                if (suc == 1) {
-                    return true;
+    public List<User> getAllUsers() {
+        List<User> userList = new ArrayList<>();
+        try (Connection connection = DatabaseConnectionProvider.getConnection();
+             PreparedStatement addUserStatement = connection.prepareStatement(GET_ALL_USER_SQL)) {
+            try (ResultSet ret = addUserStatement.executeQuery()) {
+                while (ret.next()) {
+                    userList.add(setUserFromResultSetNoNext(ret));
                 }
-            } catch (SQLException e) {
-                System.out.println("User not added because: " + e.getSQLState());
+                return userList;
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return Collections.emptyList();
+    }
+
+    @Synchronized
+    public boolean addUserToDb(UserModel userModel) {
+        try (Connection connection = DatabaseConnectionProvider.getConnection();
+             PreparedStatement addUserStatement = connection.prepareStatement(ADD_USER_SQL)) {
+            addUserStatement.setString(1, userModel.getUsername());
+            addUserStatement.setString(2, this.hashPassword(userModel.getPassword()));
+            addUserStatement.setString(3, userModel.getDisplayName());
+            addUserStatement.setString(4, userModel.getBio());
+            addUserStatement.setString(5, userModel.getImage());
+            addUserStatement.setInt(6, DEFAULT_COINS);
+            addUserStatement.setInt(7, DEFAULT_ELO);
+
+            int suc = addUserStatement.executeUpdate();
+            if (suc == 1) {
+                return true;
+            }
+        } catch (SQLException e) {
+            System.out.println("User not added because: " + e.getSQLState());
         }
         return false;
     }
@@ -76,19 +98,45 @@ public class UserRepository extends RepositoryBase {
         return Optional.empty();
     }
 
-    private Optional<User> getUser(String username) {
-        try (PreparedStatement addUserStatement = this.dbConnection.prepareStatement(GET_USER_SQL)) {
+    public Optional<User> getUser(String username) {
+        try (Connection connection = DatabaseConnectionProvider.getConnection();
+             PreparedStatement addUserStatement = connection.prepareStatement(GET_USER_SQL)) {
             addUserStatement.setString(1, username);
-            ResultSet ret = addUserStatement.executeQuery();
-            return Optional.of(this.setUserFromResultSet(ret));
+            try (ResultSet ret = addUserStatement.executeQuery()) {
+                return Optional.of(this.setUserFromResultSet(ret));
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return Optional.empty();
     }
 
+    public boolean updateTieAndGamesPlayed(List<String> players) {
+        if (players.size() > 2) {
+            return false;
+        }
+        List<User> playersUser = players.stream().map(this::getUser).map(userOpt -> userOpt.orElse(null)).collect(Collectors.toList());
+        if (!playersUser.contains(null)) {
+            User player1 = playersUser.get(0);
+            User player2 = playersUser.get(1);
+            try {
+                User updatedUser = player1.copy();
+                updatedUser.getUserStatistics().addTie();
+                this.doUpdate(player1, updatedUser);
+
+                updatedUser = player2.copy();
+                updatedUser.getUserStatistics().addTie();
+                this.doUpdate(player2, updatedUser);
+                return true;
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
     @Synchronized
-    public boolean updateElo(String winnerUsername, String loserUsername) {
+    public boolean updateEloAndGamesPlayed(String winnerUsername, String loserUsername) {
         Optional<User> winnerOpt = this.getUser(winnerUsername);
         Optional<User> loserOpt = this.getUser(loserUsername);
         if (winnerOpt.isPresent() && loserOpt.isPresent()) {
@@ -101,13 +149,17 @@ public class UserRepository extends RepositoryBase {
             try {
                 // update winner
                 User updatedUser = winner.copy();
+                updatedUser.getUserStatistics().addWin();
                 updatedUser.setElo(eloUserWinnerNew);
                 this.doUpdate(winner, updatedUser);
 
                 // update loser
                 updatedUser = loser.copy();
+                updatedUser.getUserStatistics().addLose();
                 updatedUser.setElo(eloUserLoserNew);
                 this.doUpdate(loser, updatedUser);
+
+                return true;
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -157,36 +209,10 @@ public class UserRepository extends RepositoryBase {
     }
 
     @Synchronized
-    public Optional<User> update(User userWrapper) {
-        if (userWrapper.getUsername() != null && userWrapper.getPassword() != null) {
-            return updateWithUsernameAndPassword(userWrapper);
-        } else if (userWrapper.getSecurityToken() != null && userWrapper.getSecurityTokenTimestamp() != null) {
-            return updateWithToken(userWrapper);
-        }
-        return Optional.empty();
-    }
-
-    private Optional<User> updateWithUsernameAndPassword(User userWrapper) {
-        Optional<User> userOpt = this.loginAndGetUser(userWrapper.getUsername(), userWrapper.getPassword());
-        if (userOpt.isPresent()) {
-            return updateAndCheckIfValid(userOpt.get(), userWrapper);
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    private Optional<User> updateWithToken(User userWrapper) {
-        Optional<User> userOpt = this.checkTokenAndGetUser(userWrapper.getSecurityToken());
-        if (userOpt.isPresent()) {
-            return updateAndCheckIfValid(userOpt.get(), userWrapper);
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    private Optional<User> updateAndCheckIfValid(User user, User userWrapper) {
+    public Optional<User> update(User user) {
         try {
-            if (this.doUpdate(user, userWrapper)) {
+            Optional<User> defaultUserOpt = this.getUser(user.getUsername());
+            if (defaultUserOpt.isPresent() && this.doUpdate(defaultUserOpt.get(), user)) {
                 return Optional.of(user);
             }
         } catch (SQLException e) {
@@ -202,34 +228,42 @@ public class UserRepository extends RepositoryBase {
      * @throws SQLException when an SQLException occurs
      */
     private boolean doUpdate(User defaultUserData, User updatedUser) throws SQLException {
-        try (PreparedStatement updateUserStatement = this.dbConnection.prepareStatement(UPDATE_USER_SQL)) {
-            updateUserStatement.setString(1, Objects.requireNonNullElse(updatedUser.getDisplayName(), defaultUserData.getDisplayName()));
-            updateUserStatement.setString(2, Objects.requireNonNullElse(updatedUser.getBio(), defaultUserData.getBio()));
-            updateUserStatement.setDouble(3, Objects.requireNonNullElse(updatedUser.getElo(), defaultUserData.getElo()));
-            updateUserStatement.setInt(4, Objects.requireNonNullElse(updatedUser.getCoins(), defaultUserData.getCoins()));
-            updateUserStatement.setString(5, Objects.requireNonNullElse(updatedUser.getSecurityToken(), defaultUserData.getSecurityToken()));
-            updateUserStatement.setTimestamp(6, Objects.requireNonNullElse(updatedUser.getSecurityTokenTimestamp(), defaultUserData.getSecurityTokenTimestamp()));
-            updateUserStatement.setString(7, defaultUserData.getUsername());
-            return updateUserStatement.execute();
-        } catch (SQLException ex) {
-            throw ex;
+        try (Connection connection = DatabaseConnectionProvider.getConnection();
+             PreparedStatement updateUserStatement = connection.prepareStatement(UPDATE_USER_SQL)) {
+            updateUserStatement.setString(1, whenNullElse(updatedUser.getDisplayName(), defaultUserData.getDisplayName()));
+            updateUserStatement.setString(2, whenNullElse(updatedUser.getBio(), defaultUserData.getBio()));
+            updateUserStatement.setString(3, whenNullElse(updatedUser.getImage(), defaultUserData.getImage()));
+            updateUserStatement.setInt(4, whenNullElse(updatedUser.getCoins(), defaultUserData.getCoins()));
+            updateUserStatement.setDouble(5, whenNullElse(updatedUser.getElo(), defaultUserData.getElo()));
+            updateUserStatement.setInt(6, whenNullElse(updatedUser.getUserStatistics().getWinCount(), defaultUserData.getUserStatistics().getWinCount()));
+            updateUserStatement.setInt(7, whenNullElse(updatedUser.getUserStatistics().getLoseCount(), defaultUserData.getUserStatistics().getLoseCount()));
+            updateUserStatement.setInt(8, whenNullElse(updatedUser.getUserStatistics().getTieCount(), defaultUserData.getUserStatistics().getTieCount()));
+            updateUserStatement.setString(9, defaultUserData.getUsername());
+            return updateUserStatement.executeUpdate() > 0;
         }
+    }
+
+    private static <T> T whenNullElse(T object, T defaultObject) {
+        return object != null ? object : defaultObject;
     }
 
     private User setUserFromResultSet(ResultSet ret) throws SQLException {
         ret.next();
+        return this.setUserFromResultSetNoNext(ret);
+    }
+
+    private User setUserFromResultSetNoNext(ResultSet ret) throws SQLException {
         return User.builder().id(ret.getLong(1))
                 .username(ret.getString(2))
                 .password(ret.getString(3))
-                .securityToken(ret.getString(4))
-                .securityTokenTimestamp(ret.getTimestamp(5))
-                .displayName(ret.getString(6))
-                .bio(ret.getString(7))
-                .coins(ret.getInt(8))
-                .elo(ret.getDouble(9))
-                .userStatistics(UserStatistics.builder().winCount(ret.getInt(10))
-                        .loseCount(ret.getInt(11))
-                        .tieCount(ret.getInt(12)).build()
+                .displayName(ret.getString(4))
+                .bio(ret.getString(5))
+                .image(ret.getString(6))
+                .coins(ret.getInt(7))
+                .elo(ret.getDouble(8))
+                .userStatistics(UserStatistics.builder().winCount(ret.getInt(9))
+                        .loseCount(ret.getInt(10))
+                        .tieCount(ret.getInt(11)).build()
                 ).build();
     }
 
@@ -238,9 +272,10 @@ public class UserRepository extends RepositoryBase {
         try {
             return Optional.of(JWT.create()
                     .withKeyId(username)
-                    .withExpiresAt(Timestamp.from(Instant.now().plusSeconds(3600)))
+                    .withExpiresAt(Timestamp.from(Instant.now().plusSeconds(TOKEN_VALID_PERIOD_SECONDS)))
                     .sign(algorithm));
-        } catch (JWTCreationException exception) {
+        } catch (JWTCreationException e) {
+            e.printStackTrace();
             //Invalid Signing configuration / Couldn't convert Claims.
         }
         return Optional.empty();
@@ -258,8 +293,8 @@ public class UserRepository extends RepositoryBase {
                     .build(); //Reusable verifier instance
             DecodedJWT jwt = verifier.verify(token);
             return Optional.of(jwt.getKeyId());
-        } catch (JWTCreationException exception) {
-            System.out.println("Error");
+        } catch (JWTCreationException | TokenExpiredException | SignatureVerificationException | JWTDecodeException e) {
+            e.printStackTrace();
         }
         return Optional.empty();
     }

@@ -1,18 +1,19 @@
 package game.controller.usercontroller;
 
 import game.controller.ControllerBase;
+import game.helper.RepositoryHelper;
 import game.http.models.UserModel;
 import game.http.request.Request;
 import game.http.response.ConcreteResponse;
 import game.http.response.Response;
 import game.objects.exceptions.repositories.UserOrPasswordEmptyException;
-import game.repository.RepositoryHelper;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Optional;
 
 import static game.http.enums.StatusCodeEnum.*;
+import static game.repository.UserRepository.TOKEN_VALID_PERIOD_SECONDS;
 
 public class LoginUserController extends ControllerBase {
 
@@ -37,7 +38,7 @@ public class LoginUserController extends ControllerBase {
                         System.out.println("Security token: " + securityToken);
                         // validity period
                         Timestamp timestamp = Timestamp.from(Instant.now());
-                        Timestamp validUntil = Timestamp.valueOf(timestamp.toLocalDateTime().plusMinutes(60));
+                        Timestamp validUntil = Timestamp.valueOf(timestamp.toLocalDateTime().plusSeconds(TOKEN_VALID_PERIOD_SECONDS));
                         response.setContent("{\"Authorization\": \"" + securityToken + "\", \"ValidUntil\": \"" + validUntil.toString().substring(0, validUntil.toString().indexOf(".")) + "\"}");
                     } else {
                         response.setStatus(SC_500);
@@ -48,7 +49,7 @@ public class LoginUserController extends ControllerBase {
                     response.setContent("Login failed. Please check username and password.");
                 }
             } else {
-                response.setStatus(SC_500);
+                response.setStatus(SC_400);
             }
         } catch (UserOrPasswordEmptyException ex) {
             response.setContent(ex.getMessage());

@@ -3,9 +3,9 @@ package game.http;
 public enum HttpReady {
     // header
     AUTHORIZATION_KEY("Authorization"),
-    CONTENT_LENGTH_KEY("content-length"),
-    CONTENT_TYPE_KEY("content-type"),
-    SERVER_NAME_KEY("server"),
+    CONTENT_LENGTH_KEY("Content-Length"),
+    CONTENT_TYPE_KEY("Content-Type"),
+    SERVER_NAME_KEY("Server"),
     CONTENT_TYPE_APPLICATION_JSON("application/json"),
     CONTENT_TYPE_TEXT_PLAIN("text/plain");
 

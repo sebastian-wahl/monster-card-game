@@ -7,7 +7,7 @@ import game.objects.enums.FightOutcome;
 
 public class Ork extends MonsterCard {
     public Ork() {
-        super("Big Ork", 18, ElementType.NORMAL, CardsEnum.ORK.getRarity());
+        super("Ork", 18, ElementType.NORMAL, CardsEnum.ORK.getRarity());
     }
 
     @Override

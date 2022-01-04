@@ -21,6 +21,9 @@ public class LoginUserController extends ControllerBase {
         super(request, repositoryHelper);
     }
 
+
+    private static final String USERNAME_PASSWORD_ERROR_MESSAGE = "Username and Password must be longer than 4 characters!";
+
     @Override
     public Response doWork() {
         Response response = new ConcreteResponse();
@@ -60,7 +63,7 @@ public class LoginUserController extends ControllerBase {
 
     private boolean doLogin(UserModel userModel) {
         if (throwUsernameAndPasswordException(userModel)) {
-            throw new UserOrPasswordEmptyException("Username and Password must be longer than 4 characters!");
+            throw new UserOrPasswordEmptyException(USERNAME_PASSWORD_ERROR_MESSAGE);
         }
         return this.repositoryHelper.getUserRepository().login(userModel);
     }

@@ -9,11 +9,12 @@ import game.objects.User;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class ScoreboardController extends ControllerBase {
 
-    public static final String FORMAT_PARAMETER = "format";
-    public static final String FORMAT_PARAMETER_VALUE = "simple";
+    private static final String FORMAT_PARAMETER = "format";
+    private static final String FORMAT_PARAMETER_VALUE = "simple";
 
     public ScoreboardController(Request request, RepositoryHelper repositoryHelper) {
         super(request, repositoryHelper);
@@ -24,10 +25,10 @@ public class ScoreboardController extends ControllerBase {
         Response response = new ConcreteResponse();
         Optional<User> userOpt = this.repositoryHelper.getUserRepository().checkTokenAndGetUser(userRequest.getAuthorizationToken());
         if (userOpt.isPresent()) {
-            List<User> sortedUserList = this.repositoryHelper.getUserRepository().getAllUsers();
+            List<User> sortedUserList = this.repositoryHelper.getUserRepository().getAllUsers().stream().sorted(User::compareEloToHighToLow).collect(Collectors.toList());
             if (!sortedUserList.isEmpty()) {
                 // Build scoreboard
-                if (this.userRequest.getUrl().getUrlParameters().get(FORMAT_PARAMETER).equals(FORMAT_PARAMETER_VALUE)) {
+                if (!this.userRequest.getUrl().getUrlParameters().isEmpty() && this.userRequest.getUrl().getUrlParameters().get(FORMAT_PARAMETER).equals(FORMAT_PARAMETER_VALUE)) {
                     response.setContent(this.buildsSimpleScoreboard(sortedUserList));
 
                 } else {
@@ -37,7 +38,7 @@ public class ScoreboardController extends ControllerBase {
             }
         } else {
             response.setStatus(StatusCodeEnum.SC_401);
-            response.setContent("Token is invalid. Please login again.");
+            response.setContent(WRONG_SECURITY_TOKEN_ERROR_MESSAGE);
         }
         return response;
     }
@@ -45,7 +46,7 @@ public class ScoreboardController extends ControllerBase {
     private String buildsSimpleScoreboard(List<User> sortedUserList) {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("{ \"Scoreboard\": ");
+        sb.append("{\"Scoreboard\": ");
         if (!sortedUserList.isEmpty()) {
             sb.append("{");
             for (int i = 1; i <= sortedUserList.size(); i++) {
@@ -71,7 +72,7 @@ public class ScoreboardController extends ControllerBase {
     private String buildScoreboard(List<User> sortedUserList) {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("{ \"Scoreboard\": ");
+        sb.append("{\"Scoreboard\": ");
         if (!sortedUserList.isEmpty()) {
             sb.append("{");
             for (int i = 1; i <= sortedUserList.size(); i++) {

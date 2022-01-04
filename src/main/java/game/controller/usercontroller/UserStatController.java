@@ -33,7 +33,7 @@ public class UserStatController extends ControllerBase {
 
     private String buildStats(User user) {
         StringBuilder sb = new StringBuilder();
-        sb.append("{ \"").append(user.getUsername()).append(" statistics\": ");
+        sb.append("{\"").append(user.getUsername()).append(" statistics\": ");
         sb.append(user.getStatisticString());
         sb.append("}");
         return sb.toString();

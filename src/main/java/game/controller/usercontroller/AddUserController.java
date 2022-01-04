@@ -2,19 +2,23 @@ package game.controller.usercontroller;
 
 import game.controller.ControllerBase;
 import game.helper.RepositoryHelper;
+import game.http.enums.StatusCodeEnum;
 import game.http.models.UserModel;
 import game.http.request.Request;
 import game.http.response.ConcreteResponse;
 import game.http.response.Response;
 import game.objects.exceptions.repositories.UserOrPasswordEmptyException;
 
-import static game.http.enums.StatusCodeEnum.*;
+import static game.http.enums.StatusCodeEnum.SC_201;
+import static game.http.enums.StatusCodeEnum.SC_400;
 
 public class AddUserController extends ControllerBase {
 
     public AddUserController(Request request, RepositoryHelper repositoryHelper) {
         super(request, repositoryHelper);
     }
+
+    private static final String USERNAME_PASSWORD_ERROR_MESSAGE = "Username and Password must be longer than 4 characters!";
 
     @Override
     public Response doWork() {
@@ -34,7 +38,8 @@ public class AddUserController extends ControllerBase {
                     System.out.println("User not added");
                 }
             } else {
-                response.setStatus(SC_500);
+                response.setStatus(StatusCodeEnum.SC_400);
+                response.setContent(WRONG_BODY_MESSAGE);
             }
         } catch (UserOrPasswordEmptyException ex) {
             response.setStatus(SC_400);
@@ -47,7 +52,7 @@ public class AddUserController extends ControllerBase {
         // first two are mandatory,
         if (this.userRequest.getModel() instanceof UserModel) {
             if (this.throwUsernameAndPasswordException(userModel)) {
-                throw new UserOrPasswordEmptyException("Username and Password must be longer than 4 characters!");
+                throw new UserOrPasswordEmptyException(USERNAME_PASSWORD_ERROR_MESSAGE);
             }
             return this.repositoryHelper.getUserRepository().addUserToDb(userModel);
         }

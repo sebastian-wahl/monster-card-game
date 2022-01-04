@@ -13,8 +13,6 @@ import java.sql.SQLException;
 import java.util.Optional;
 
 public class DeckRepository extends RepositoryBase {
-    private Connection db2Connection;
-
     private static final String GET_CARDS_FROM_DECK_SQL = "SELECT * FROM card WHERE id IN (SELECT card_id FROM deck WHERE username=?);";
 
 

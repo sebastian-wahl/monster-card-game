@@ -48,7 +48,7 @@ public class User {
         this.stack = user.getStack();
         this.deck = user.getDeck();
 
-        this.userStatistics = user.getUserStatistics().copy();
+        this.userStatistics = user.getUserStatistics() != null ? user.getUserStatistics().copy() : new UserStatistics();
     }
 
     /**
@@ -58,7 +58,13 @@ public class User {
         return new User(this);
     }
 
-    public int compareEloTo(User another) {
+    public int compareEloToHighToLow(User another) {
+        if (this.elo == another.getElo())
+            return 0;
+        return this.elo > another.elo ? -1 : 1;
+    }
+
+    public int compareEloToLowToHigh(User another) {
         if (this.elo == another.getElo())
             return 0;
         return this.elo > another.elo ? 1 : -1;
@@ -77,7 +83,7 @@ public class User {
 
     @Override
     public String toString() {
-        return "{ \"User\": {" +
+        return "{\"User\": {" +
                 "\"Username\": \"" + this.username + "\", " +
                 "\"Display Name\": \"" + replaceNullWithUndefined(this.displayName) + "\", " +
                 "\"Bio\": \"" + replaceNullWithUndefined(this.bio) + "\", " +

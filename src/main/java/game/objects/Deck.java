@@ -1,9 +1,6 @@
 package game.objects;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class Deck {
 
@@ -51,6 +48,19 @@ public class Deck {
 
     public List<CardBase> getCards() {
         return this.deck;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Deck)) return false;
+        Deck deck1 = (Deck) o;
+        return Objects.equals(deck, deck1.deck);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(deck);
     }
 
     @Override

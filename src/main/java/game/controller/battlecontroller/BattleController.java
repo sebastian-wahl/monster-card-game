@@ -36,8 +36,8 @@ public class BattleController extends ControllerBase {
 
         } else {
             Response response = new ConcreteResponse();
-            response.setContent("The Authorization Token is either expired or wrong.");
-            response.setStatus(StatusCodeEnum.SC_400);
+            response.setContent(WRONG_SECURITY_TOKEN_ERROR_MESSAGE);
+            response.setStatus(StatusCodeEnum.SC_401);
             return response;
         }
     }

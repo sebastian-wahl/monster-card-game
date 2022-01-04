@@ -35,6 +35,8 @@ class LoginUserControllerTest {
 
     private LoginUserController userController;
 
+    private static final String USERNAME_PASSWORD_TO_SHORT_ERROR_MESSAGE = "Username and Password must be longer than 4 characters!";
+    private static final String USERNAME_PASSWORD_ERROR_MESSAGE = "Login failed. Please check username and password.";
     private static final String USERNAME_1 = "User1";
     private static final String PASSWORD_1 = "Password1";
 
@@ -77,7 +79,7 @@ class LoginUserControllerTest {
         Response response = this.userController.doWork();
         assertThat(response.getStatusCode()).isEqualTo(401);
         assertThat(response.getStatus()).isEqualTo(SC_401);
-        assertThat(response.getContent()).contains("Login failed. Please check username and password.");
+        assertThat(response.getContent()).contains(USERNAME_PASSWORD_ERROR_MESSAGE);
         assertThat(response.getContentType()).isEqualTo(CONTENT_TYPE_TEXT_PLAIN.toString());
     }
 
@@ -88,7 +90,7 @@ class LoginUserControllerTest {
         Response response = this.userController.doWork();
         assertThat(response.getStatusCode()).isEqualTo(400);
         assertThat(response.getStatus()).isEqualTo(SC_400);
-        assertThat(response.getContent()).contains("Username and Password must be longer than 4 characters!");
+        assertThat(response.getContent()).contains(USERNAME_PASSWORD_TO_SHORT_ERROR_MESSAGE);
         assertThat(response.getContentType()).isEqualTo(CONTENT_TYPE_TEXT_PLAIN.toString());
     }
 }

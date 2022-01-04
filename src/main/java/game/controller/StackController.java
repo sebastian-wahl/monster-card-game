@@ -31,7 +31,7 @@ public class StackController extends ControllerBase {
             }
         } else {
             response.setStatus(StatusCodeEnum.SC_401);
-            response.setContent("Token is invalid. Please login again.");
+            response.setContent(WRONG_SECURITY_TOKEN_ERROR_MESSAGE);
         }
         return response;
     }

@@ -14,6 +14,8 @@ import java.util.Optional;
 
 public class DeckController extends ControllerBase {
 
+    private static final String TOO_MANY_CARDS_FOR_DECK_ERROR_MESSAGE = "Please only choose 4 cards for your deck.";
+
     public DeckController(Request request, RepositoryHelper repositoryHelper) {
         super(request, repositoryHelper);
     }
@@ -40,15 +42,18 @@ public class DeckController extends ControllerBase {
                         response.setContent(userOpt.get().getDeck().toString());
                     } else {
                         response.setStatus(StatusCodeEnum.SC_400);
-                        response.setContent("Please only choose 4 cards for your deck.");
+                        response.setContent(TOO_MANY_CARDS_FOR_DECK_ERROR_MESSAGE);
                     }
+                } else {
+                    response.setStatus(StatusCodeEnum.SC_400);
+                    response.setContent(WRONG_BODY_MESSAGE);
                 }
             } else {
                 response.setStatus(StatusCodeEnum.SC_400);
             }
         } else {
             response.setStatus(StatusCodeEnum.SC_401);
-            response.setContent("Token is invalid. Please login again.");
+            response.setContent(WRONG_SECURITY_TOKEN_ERROR_MESSAGE);
         }
         return response;
     }

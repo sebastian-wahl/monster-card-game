@@ -5,6 +5,7 @@ import game.objects.enums.FightOutcome;
 import game.objects.enums.RarityEnum;
 import lombok.Data;
 
+import java.util.Objects;
 import java.util.UUID;
 
 
@@ -18,6 +19,8 @@ public abstract class CardBase implements Comparable<CardBase> {
     private String name;
     private final double damage;
     private ElementType elementType;
+
+    private int adminPackageNumber = 0;
 
     public final RarityEnum cardRarity;
 
@@ -70,6 +73,19 @@ public abstract class CardBase implements Comparable<CardBase> {
             case WATER -> fightWater(competitor);
             case NORMAL -> fightNormal(competitor);
         };
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof CardBase)) return false;
+        CardBase cardBase = (CardBase) o;
+        return Objects.equals(name, cardBase.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
     }
 
     @Override

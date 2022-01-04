@@ -31,8 +31,8 @@ public class ConcreteUrl implements Url {
     public void splitUrl(String url) {
         if (url.contains("?")) {
             String[] urlPathParams = url.split("\\?");
-            urlPath = this.getPathEnumFromString(urlPathParams[0].substring(1));
             readUrlSegments(urlPathParams[0]);
+            urlPath = this.getPathEnumFromString(this.urlSegments.get(this.urlSegments.size() - 1));
             readUrlParams(urlPathParams[1]);
         } else {
             readUrlSegments(url);

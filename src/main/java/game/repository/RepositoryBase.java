@@ -25,7 +25,10 @@ public abstract class RepositoryBase {
         while (rs.next()) {
             String id = rs.getString(1);
             String cardEnumName = rs.getString(2);
-            out.add(CardFactory.createCard(CardsEnum.valueOf(cardEnumName.toUpperCase().replace(' ', '_')), id));
+            int packageNumber = rs.getInt(4);
+            CardBase card = CardFactory.createCard(CardsEnum.valueOf(cardEnumName.toUpperCase().replace(' ', '_')), id);
+            card.setAdminPackageNumber(packageNumber);
+            out.add(card);
         }
         return out;
     }
@@ -37,8 +40,13 @@ public abstract class RepositoryBase {
             try (ResultSet rs = statement.executeQuery()) {
                 rs.next();
                 String cardEnumName = rs.getString(2);
-                return CardFactory.createCard(CardsEnum.valueOf(cardEnumName.toUpperCase().replace(' ', '_')), id);
+                int packageNumber = rs.getInt(4);
+                CardBase card = CardFactory.createCard(CardsEnum.valueOf(cardEnumName.toUpperCase().replace(' ', '_')), id);
+                card.setAdminPackageNumber(packageNumber);
+                return card;
             }
         }
     }
+
+
 }

@@ -9,6 +9,7 @@ import game.controller.usercontroller.UserStatController;
 import game.helper.RepositoryHelper;
 import game.http.request.ConcreteRequest;
 import game.http.request.Request;
+import game.http.response.ConcreteResponse;
 import game.http.response.Response;
 import game.http.url.PathEnum;
 
@@ -51,8 +52,8 @@ public class ClientGameRunner implements Runnable {
             case STATS -> new UserStatController(request, repositoryHelper);
             case SCORE -> new ScoreboardController(request, repositoryHelper);
             case TRADINGS -> new LoginUserController(request, repositoryHelper);
-            case NOMATCH -> throw new IllegalArgumentException("Invalid path: " + path);
+            case NOMATCH -> null;
         };
-        return controller.doWork();
+        return controller != null ? controller.doWork() : new ConcreteResponse();
     }
 }

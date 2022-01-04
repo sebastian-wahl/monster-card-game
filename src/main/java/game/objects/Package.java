@@ -15,8 +15,16 @@ public class Package {
     public static final int PACKAGE_COST = 4;
     public static final int PACKAGE_SIZE = 5;
 
+    public Package(List<CardBase> cards) {
+        if (cards.size() == PACKAGE_SIZE) {
+            this.cards = cards;
+        } else {
+            this.cards = this.generateCardList();
+        }
+    }
+
     public Package() {
-        cards = this.generateCardList();
+        this.cards = this.generateCardList();
     }
 
     /**

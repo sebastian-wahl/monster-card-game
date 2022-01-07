@@ -1,9 +1,7 @@
 package game.repository;
 
-import game.db.DatabaseConnectionProvider;
 import lombok.Synchronized;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,55 +14,42 @@ public class PackageRepository extends RepositoryBase {
     private static final String SET_PACKAGE_TO_BOUGHT_SQL = "UPDATE admin_package SET is_bought = true WHERE package_number = ?;";
 
     @Synchronized
-    public int addAdminPackage() {
-        try (Connection connection = DatabaseConnectionProvider.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(ADD_PACKAGE_SQL)) {
+    public int addAdminPackage() throws SQLException {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(ADD_PACKAGE_SQL)) {
             preparedStatement.setBoolean(1, false);
-            ResultSet rs = preparedStatement.executeQuery();
-            rs.next();
-            return rs.getInt(1);
-        } catch (SQLException ex) {
-            ex.printStackTrace();
+            try (ResultSet rs = preparedStatement.executeQuery()) {
+                rs.next();
+                return rs.getInt(1);
+            }
         }
-        return -1;
     }
 
     @Synchronized
-    public boolean isAdminPackageBought(int packageNumber) {
-        try (Connection connection = DatabaseConnectionProvider.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(GET_IS_BOUGHT_PACKAGE_SQL)) {
+    public boolean isAdminPackageBought(int packageNumber) throws SQLException {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(GET_IS_BOUGHT_PACKAGE_SQL)) {
             preparedStatement.setInt(1, packageNumber);
-            ResultSet rs = preparedStatement.executeQuery();
-            rs.next();
-            return rs.getBoolean(1);
-        } catch (SQLException ex) {
-            ex.printStackTrace();
+            try (ResultSet rs = preparedStatement.executeQuery()) {
+                rs.next();
+                return rs.getBoolean(1);
+            }
         }
-        return false;
     }
 
     @Synchronized
-    public int getFirstAvailablePackageNumber() {
-        try (Connection connection = DatabaseConnectionProvider.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(GET_FIST_NOT_BOUGHT_PACKAGE_SQL)) {
-            ResultSet rs = preparedStatement.executeQuery();
-            rs.next();
-            return rs.getInt(1);
-        } catch (SQLException ex) {
-            ex.printStackTrace();
+    public int getFirstAvailablePackageNumber() throws SQLException {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(GET_FIST_NOT_BOUGHT_PACKAGE_SQL)) {
+            try (ResultSet rs = preparedStatement.executeQuery()) {
+                rs.next();
+                return rs.getInt(1);
+            }
         }
-        return -1;
     }
 
     @Synchronized
-    public boolean setAdminPackageToBought(int packageNumber) {
-        try (Connection connection = DatabaseConnectionProvider.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(SET_PACKAGE_TO_BOUGHT_SQL)) {
+    public boolean setAdminPackageToBought(int packageNumber) throws SQLException {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(SET_PACKAGE_TO_BOUGHT_SQL)) {
             preparedStatement.setInt(1, packageNumber);
             return preparedStatement.executeUpdate() > 0;
-        } catch (SQLException ex) {
-            ex.printStackTrace();
         }
-        return false;
     }
 }

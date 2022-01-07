@@ -12,6 +12,7 @@ import game.objects.User;
 import game.objects.card.factory.CardFactory;
 import game.objects.enums.CardsEnum;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -35,7 +36,7 @@ public class PackageController extends ControllerBase {
     }
 
     @Override
-    public Response doWork() {
+    public Response doWorkIntern() throws SQLException {
         Response response = new ConcreteResponse();
         if (userRequest.getAuthorizationToken().equals(ADMIN_SECURITY_TOKEN) && this.hasAddAdminPackageUrlParameter()) {
             response = this.addAdminPackage();
@@ -68,22 +69,18 @@ public class PackageController extends ControllerBase {
     }
 
     private boolean hasAddAdminPackageUrlParameter() {
-        try {
-            return !this.userRequest.getUrl().getUrlParameters().isEmpty() && this.userRequest.getUrl().getUrlParameters().get(ADMIN_ADD_PACKAGE_PARAMETER).equals(ADMIN_ADD_PACKAGE_VALUE);
-        } catch (NullPointerException ex) {
-            return false;
-        }
+        return !this.userRequest.getUrl().getUrlParameters().isEmpty() &&
+                this.userRequest.getUrl().getUrlParameters().get(ADMIN_ADD_PACKAGE_PARAMETER) != null &&
+                this.userRequest.getUrl().getUrlParameters().get(ADMIN_ADD_PACKAGE_PARAMETER).equals(ADMIN_ADD_PACKAGE_VALUE);
     }
 
     private boolean hasBuyAdminPackageUrlParameter() {
-        try {
-            return !this.userRequest.getUrl().getUrlParameters().isEmpty() && this.userRequest.getUrl().getUrlParameters().get(BUY_ADMIN_PACKAGE_PARAMETER).equals(BUY_ADMIN_PACKAGE_VALUE);
-        } catch (NullPointerException ex) {
-            return false;
-        }
+        return !this.userRequest.getUrl().getUrlParameters().isEmpty() &&
+                this.userRequest.getUrl().getUrlParameters().get(BUY_ADMIN_PACKAGE_PARAMETER) != null &&
+                this.userRequest.getUrl().getUrlParameters().get(BUY_ADMIN_PACKAGE_PARAMETER).equals(BUY_ADMIN_PACKAGE_VALUE);
     }
 
-    private Response addAdminPackage() {
+    private Response addAdminPackage() throws SQLException {
         Response response = new ConcreteResponse();
         if (this.userRequest.getModel() instanceof PackageModel) {
             PackageModel packageModel = (PackageModel) this.userRequest.getModel();
@@ -104,10 +101,9 @@ public class PackageController extends ControllerBase {
                         .peek(cardBase -> cardBase.setAdminPackageNumber(packageNumber))
                         .collect(Collectors.toList());
 
-                if (this.repositoryHelper.getCardRepository().addCards(cardsToAdd)) {
-                    response.setContent(new Package(cardsToAdd).toString());
-                    response.setStatus(StatusCodeEnum.SC_200);
-                }
+                this.repositoryHelper.getCardRepository().addCards(cardsToAdd);
+                response.setContent(new Package(cardsToAdd).toString());
+                response.setStatus(StatusCodeEnum.SC_200);
             } else {
                 response.setStatus(StatusCodeEnum.SC_500);
             }
@@ -118,7 +114,7 @@ public class PackageController extends ControllerBase {
         return response;
     }
 
-    private Response buyAdminPackage(User user) {
+    private Response buyAdminPackage(User user) throws SQLException {
         Response response = new ConcreteResponse();
         int freePackageNumber = this.repositoryHelper.getPackageRepository().getFirstAvailablePackageNumber();
         if (freePackageNumber > 0) {
@@ -142,18 +138,18 @@ public class PackageController extends ControllerBase {
         return response;
     }
 
-    private Response buyRandomPackage(User user) {
+    private Response buyRandomPackage(User user) throws SQLException {
         Response response = new ConcreteResponse();
         Package pack = new Package();
         // set response to error and change if everything worked out
         response.setStatus(StatusCodeEnum.SC_500);
-        if (this.repositoryHelper.getCardRepository().addCards(pack.cards)) {
-            Optional<User> userAddStackOpt = this.repositoryHelper.getStackRepository().addCardsToUserStack(user, pack);
-            if (userAddStackOpt.isPresent()) {
-                response.setStatus(StatusCodeEnum.SC_200);
-                response.setContent(pack.toString());
-            }
+        this.repositoryHelper.getCardRepository().addCards(pack.cards);
+        Optional<User> userAddStackOpt = this.repositoryHelper.getStackRepository().addCardsToUserStack(user, pack);
+        if (userAddStackOpt.isPresent()) {
+            response.setStatus(StatusCodeEnum.SC_200);
+            response.setContent(pack.toString());
         }
+
         return response;
     }
 }

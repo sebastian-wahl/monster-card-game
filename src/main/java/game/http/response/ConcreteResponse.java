@@ -27,6 +27,7 @@ public class ConcreteResponse implements Response {
     public ConcreteResponse() {
         headers = new HashMap<>();
         this.status = SC_400;
+        this.setContent("Bad request");
     }
 
 

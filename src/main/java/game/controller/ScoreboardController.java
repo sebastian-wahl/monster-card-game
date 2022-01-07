@@ -7,6 +7,7 @@ import game.http.response.ConcreteResponse;
 import game.http.response.Response;
 import game.objects.User;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -21,14 +22,14 @@ public class ScoreboardController extends ControllerBase {
     }
 
     @Override
-    public Response doWork() {
+    public Response doWorkIntern() throws SQLException {
         Response response = new ConcreteResponse();
         Optional<User> userOpt = this.repositoryHelper.getUserRepository().checkTokenAndGetUser(userRequest.getAuthorizationToken());
         if (userOpt.isPresent()) {
             List<User> sortedUserList = this.repositoryHelper.getUserRepository().getAllUsers().stream().sorted(User::compareEloToHighToLow).collect(Collectors.toList());
             if (!sortedUserList.isEmpty()) {
                 // Build scoreboard
-                if (!this.userRequest.getUrl().getUrlParameters().isEmpty() && this.userRequest.getUrl().getUrlParameters().get(FORMAT_PARAMETER).equals(FORMAT_PARAMETER_VALUE)) {
+                if (this.hasSimpleFormatUrlParams()) {
                     response.setContent(this.buildsSimpleScoreboard(sortedUserList));
 
                 } else {
@@ -41,6 +42,12 @@ public class ScoreboardController extends ControllerBase {
             response.setContent(WRONG_SECURITY_TOKEN_ERROR_MESSAGE);
         }
         return response;
+    }
+
+    private boolean hasSimpleFormatUrlParams() {
+        return !this.userRequest.getUrl().getUrlParameters().isEmpty() &&
+                this.userRequest.getUrl().getUrlParameters().get(FORMAT_PARAMETER) != null &&
+                this.userRequest.getUrl().getUrlParameters().get(FORMAT_PARAMETER).equals(FORMAT_PARAMETER_VALUE);
     }
 
     private String buildsSimpleScoreboard(List<User> sortedUserList) {

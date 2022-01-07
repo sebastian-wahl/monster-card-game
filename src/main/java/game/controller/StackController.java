@@ -7,6 +7,7 @@ import game.http.response.ConcreteResponse;
 import game.http.response.Response;
 import game.objects.User;
 
+import java.sql.SQLException;
 import java.util.Optional;
 
 public class StackController extends ControllerBase {
@@ -16,7 +17,7 @@ public class StackController extends ControllerBase {
     }
 
     @Override
-    public Response doWork() {
+    public Response doWorkIntern() throws SQLException {
         Response response = new ConcreteResponse();
 
         Optional<User> isValid = this.repositoryHelper.getUserRepository().checkTokenAndGetUser(this.userRequest.getAuthorizationToken());

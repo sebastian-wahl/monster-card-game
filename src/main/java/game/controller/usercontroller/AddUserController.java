@@ -9,6 +9,8 @@ import game.http.response.ConcreteResponse;
 import game.http.response.Response;
 import game.objects.exceptions.repositories.UserOrPasswordEmptyException;
 
+import java.sql.SQLException;
+
 import static game.http.enums.StatusCodeEnum.SC_201;
 import static game.http.enums.StatusCodeEnum.SC_400;
 
@@ -21,7 +23,7 @@ public class AddUserController extends ControllerBase {
     private static final String USERNAME_PASSWORD_ERROR_MESSAGE = "Username and Password must be longer than 4 characters!";
 
     @Override
-    public Response doWork() {
+    public Response doWorkIntern() throws SQLException {
         Response response = new ConcreteResponse();
         try {
             if (this.userRequest.getModel() instanceof UserModel) {
@@ -48,7 +50,7 @@ public class AddUserController extends ControllerBase {
         return response;
     }
 
-    private boolean addUser(UserModel userModel) {
+    private boolean addUser(UserModel userModel) throws SQLException {
         // first two are mandatory,
         if (this.userRequest.getModel() instanceof UserModel) {
             if (this.throwUsernameAndPasswordException(userModel)) {

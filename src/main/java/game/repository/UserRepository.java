@@ -8,17 +8,18 @@ import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import game.db.DatabaseConnectionProvider;
 import game.http.models.UserModel;
 import game.objects.User;
 import game.objects.UserStatistics;
 import jBCrypt.BCrypt;
 import lombok.Synchronized;
 
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -48,26 +49,21 @@ public class UserRepository extends RepositoryBase {
     }
 
     @Synchronized
-    public List<User> getAllUsers() {
+    public List<User> getAllUsers() throws SQLException {
         List<User> userList = new ArrayList<>();
-        try (Connection connection = DatabaseConnectionProvider.getConnection();
-             PreparedStatement addUserStatement = connection.prepareStatement(GET_ALL_USER_SQL)) {
+        try (PreparedStatement addUserStatement = connection.prepareStatement(GET_ALL_USER_SQL)) {
             try (ResultSet ret = addUserStatement.executeQuery()) {
                 while (ret.next()) {
                     userList.add(setUserFromResultSetNoNext(ret));
                 }
                 return userList;
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
-        return Collections.emptyList();
     }
 
     @Synchronized
-    public boolean addUserToDb(UserModel userModel) {
-        try (Connection connection = DatabaseConnectionProvider.getConnection();
-             PreparedStatement addUserStatement = connection.prepareStatement(ADD_USER_SQL)) {
+    public boolean addUserToDb(UserModel userModel) throws SQLException {
+        try (PreparedStatement addUserStatement = connection.prepareStatement(ADD_USER_SQL)) {
             addUserStatement.setString(1, userModel.getUsername());
             addUserStatement.setString(2, this.hashPassword(userModel.getPassword()));
             addUserStatement.setString(3, userModel.getDisplayName());
@@ -76,21 +72,15 @@ public class UserRepository extends RepositoryBase {
             addUserStatement.setInt(6, DEFAULT_COINS);
             addUserStatement.setInt(7, DEFAULT_ELO);
 
-            int suc = addUserStatement.executeUpdate();
-            if (suc == 1) {
-                return true;
-            }
-        } catch (SQLException e) {
-            System.out.println("User not added because: " + e.getSQLState());
+            return addUserStatement.executeUpdate() == 1;
         }
-        return false;
     }
 
     private String hashPassword(String plainTextPassword) {
         return BCrypt.hashpw(plainTextPassword, BCrypt.gensalt());
     }
 
-    private Optional<User> loginAndGetUser(String username, String password) {
+    private Optional<User> loginAndGetUser(String username, String password) throws SQLException {
         Optional<User> userOpt = this.getUser(username);
         if (userOpt.isPresent() && this.checkPass(password, userOpt.get().getPassword())) {
             return userOpt;
@@ -98,45 +88,47 @@ public class UserRepository extends RepositoryBase {
         return Optional.empty();
     }
 
-    public Optional<User> getUser(String username) {
-        try (Connection connection = DatabaseConnectionProvider.getConnection();
-             PreparedStatement addUserStatement = connection.prepareStatement(GET_USER_SQL)) {
+    public Optional<User> getUser(String username) throws SQLException {
+        try (PreparedStatement addUserStatement = connection.prepareStatement(GET_USER_SQL)) {
             addUserStatement.setString(1, username);
             try (ResultSet ret = addUserStatement.executeQuery()) {
                 return Optional.of(this.setUserFromResultSet(ret));
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
-        return Optional.empty();
     }
 
-    public boolean updateTieAndGamesPlayed(List<String> players) {
+    public boolean updateTieAndGamesPlayed(List<String> players) throws SQLException {
         if (players.size() > 2) {
             return false;
         }
-        List<User> playersUser = players.stream().map(this::getUser).map(userOpt -> userOpt.orElse(null)).collect(Collectors.toList());
+        List<User> playersUser = players.stream()
+                .map(stringUsername -> {
+                    try {
+                        return this.getUser(stringUsername);
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .map(userOpt -> userOpt.orElse(null))
+                .collect(Collectors.toList());
+
         if (!playersUser.contains(null)) {
             User player1 = playersUser.get(0);
             User player2 = playersUser.get(1);
-            try {
-                User updatedUser = player1.copy();
-                updatedUser.getUserStatistics().addTie();
-                this.doUpdate(player1, updatedUser);
+            User updatedUser = player1.copy();
+            updatedUser.getUserStatistics().addTie();
+            this.doUpdate(player1, updatedUser);
 
-                updatedUser = player2.copy();
-                updatedUser.getUserStatistics().addTie();
-                this.doUpdate(player2, updatedUser);
-                return true;
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            updatedUser = player2.copy();
+            updatedUser.getUserStatistics().addTie();
+            this.doUpdate(player2, updatedUser);
+            return true;
         }
         return false;
     }
 
     @Synchronized
-    public boolean updateEloAndGamesPlayed(String winnerUsername, String loserUsername) {
+    public boolean updateEloAndGamesPlayed(String winnerUsername, String loserUsername) throws SQLException {
         Optional<User> winnerOpt = this.getUser(winnerUsername);
         Optional<User> loserOpt = this.getUser(loserUsername);
         if (winnerOpt.isPresent() && loserOpt.isPresent()) {
@@ -146,23 +138,19 @@ public class UserRepository extends RepositoryBase {
             double eloUserWinnerNew = calculateNewEloWinner(winner.getElo(), loser.getElo());
             double eloUserLoserNew = calculateNewEloLoser(loser.getElo(), winner.getElo());
 
-            try {
-                // update winner
-                User updatedUser = winner.copy();
-                updatedUser.getUserStatistics().addWin();
-                updatedUser.setElo(eloUserWinnerNew);
-                this.doUpdate(winner, updatedUser);
+            // update winner
+            User updatedUser = winner.copy();
+            updatedUser.getUserStatistics().addWin();
+            updatedUser.setElo(eloUserWinnerNew);
+            this.doUpdate(winner, updatedUser);
 
-                // update loser
-                updatedUser = loser.copy();
-                updatedUser.getUserStatistics().addLose();
-                updatedUser.setElo(eloUserLoserNew);
-                this.doUpdate(loser, updatedUser);
+            // update loser
+            updatedUser = loser.copy();
+            updatedUser.getUserStatistics().addLose();
+            updatedUser.setElo(eloUserLoserNew);
+            this.doUpdate(loser, updatedUser);
 
-                return true;
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            return true;
         }
         return false;
     }
@@ -200,7 +188,7 @@ public class UserRepository extends RepositoryBase {
     }
 
     @Synchronized
-    public boolean login(UserModel userModel) {
+    public boolean login(UserModel userModel) throws SQLException {
         return this.loginAndGetUser(userModel.getUsername(), userModel.getPassword()).isPresent();
     }
 
@@ -209,14 +197,10 @@ public class UserRepository extends RepositoryBase {
     }
 
     @Synchronized
-    public Optional<User> update(User user) {
-        try {
-            Optional<User> defaultUserOpt = this.getUser(user.getUsername());
-            if (defaultUserOpt.isPresent() && this.doUpdate(defaultUserOpt.get(), user)) {
-                return Optional.of(user);
-            }
-        } catch (SQLException e) {
-            return Optional.empty();
+    public Optional<User> update(User user) throws SQLException {
+        Optional<User> defaultUserOpt = this.getUser(user.getUsername());
+        if (defaultUserOpt.isPresent() && this.doUpdate(defaultUserOpt.get(), user)) {
+            return Optional.of(user);
         }
         return Optional.empty();
     }
@@ -228,8 +212,7 @@ public class UserRepository extends RepositoryBase {
      * @throws SQLException when an SQLException occurs
      */
     private boolean doUpdate(User defaultUserData, User updatedUser) throws SQLException {
-        try (Connection connection = DatabaseConnectionProvider.getConnection();
-             PreparedStatement updateUserStatement = connection.prepareStatement(UPDATE_USER_SQL)) {
+        try (PreparedStatement updateUserStatement = connection.prepareStatement(UPDATE_USER_SQL)) {
             updateUserStatement.setString(1, whenNullElse(updatedUser.getDisplayName(), defaultUserData.getDisplayName()));
             updateUserStatement.setString(2, whenNullElse(updatedUser.getBio(), defaultUserData.getBio()));
             updateUserStatement.setString(3, whenNullElse(updatedUser.getImage(), defaultUserData.getImage()));
@@ -299,7 +282,7 @@ public class UserRepository extends RepositoryBase {
         return Optional.empty();
     }
 
-    public Optional<User> checkTokenAndGetUser(String token) {
+    public Optional<User> checkTokenAndGetUser(String token) throws SQLException {
         Optional<String> usernameOpt = this.checkToken(token);
         if (usernameOpt.isPresent()) {
             String username = usernameOpt.get();

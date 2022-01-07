@@ -45,13 +45,12 @@ public class ClientGameRunner implements Runnable {
             case USERS -> new AddUserController(request, repositoryHelper);
             case BATTLES -> new BattleController(request, repositoryHelper, battleQueueHandler);
             case SESSIONS -> new LoginUserController(request, repositoryHelper);
-            case PACKAGES -> new PackageController(request, repositoryHelper);
-            //case TRANSACTIONS -> new LoginUserController(request, repositoryHelper);
+            case PACKAGES, TRANSACTIONS -> new PackageController(request, repositoryHelper);
             case CARDS -> new StackController(request, repositoryHelper);
             case DECK -> new DeckController(request, repositoryHelper);
             case STATS -> new UserStatController(request, repositoryHelper);
             case SCORE -> new ScoreboardController(request, repositoryHelper);
-            case TRADINGS -> new LoginUserController(request, repositoryHelper);
+            case TRADINGS -> new TradeController(request, repositoryHelper);
             case NOMATCH -> null;
         };
         return controller != null ? controller.doWork() : new ConcreteResponse();

@@ -12,6 +12,7 @@ import game.objects.User;
 import game.objects.enums.FightOutcome;
 import lombok.Synchronized;
 
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -26,7 +27,7 @@ public class BattleQueueHandler {
     }
 
     @Synchronized
-    public CompletableFuture<Response> addUserToBattleQueueAndHandleBattle(String user) {
+    public CompletableFuture<Response> addUserToBattleQueueAndHandleBattle(String user) throws SQLException {
         CompletableFuture<Response> output = new CompletableFuture<>();
         if (this.completableFutureMap.containsKey(user)) {
             // user already in queue
@@ -45,12 +46,9 @@ public class BattleQueueHandler {
         return output;
     }
 
-    protected void handleBattle(List<String> usernames) {
-        Deck playerOneDeck;
-        Optional<Deck> playerOneOpt = this.repositoryHelper.getDeckRepository().getDeckByUsername(usernames.get(0));
-        if (playerOneOpt.isPresent()) {
-            playerOneDeck = playerOneOpt.get();
-        } else {
+    protected void handleBattle(List<String> usernames) throws SQLException {
+        Deck playerOneDeck = this.repositoryHelper.getDeckRepository().getDeckByUsername(usernames.get(0));
+        if (playerOneDeck.getDeckSize() == 0) {
             Response response = new ConcreteResponse();
             response.setContent("User: \"" + usernames.get(0) + "\" hasn't selected a deck yet! A battle cannot start if a user has not selected a deck!");
             response.setStatus(StatusCodeEnum.SC_400);
@@ -60,11 +58,8 @@ public class BattleQueueHandler {
             return;
         }
 
-        Deck playerTwoDeck;
-        Optional<Deck> playerTwoOpt = this.repositoryHelper.getDeckRepository().getDeckByUsername(usernames.get(1));
-        if (playerTwoOpt.isPresent()) {
-            playerTwoDeck = playerTwoOpt.get();
-        } else {
+        Deck playerTwoDeck = this.repositoryHelper.getDeckRepository().getDeckByUsername(usernames.get(1));
+        if (playerTwoDeck.getDeckSize() == 0) {
             Response response = new ConcreteResponse();
             response.setContent("User: \"" + usernames.get(1) + "\" hasn't selected a deck yet! A battle cannot start if a user has not selected a deck!");
             response.setStatus(StatusCodeEnum.SC_400);
@@ -124,7 +119,7 @@ public class BattleQueueHandler {
         }
     }
 
-    private void updateScore(String winningPlayer, String losingPlayer) {
+    private void updateScore(String winningPlayer, String losingPlayer) throws SQLException {
         if (this.repositoryHelper.getUserRepository().updateEloAndGamesPlayed(winningPlayer, losingPlayer)) {
             System.out.println("Score updated");
         } else {
@@ -132,7 +127,7 @@ public class BattleQueueHandler {
         }
     }
 
-    private void updateScoreTie(List<String> players) {
+    private void updateScoreTie(List<String> players) throws SQLException {
         if (this.repositoryHelper.getUserRepository().updateTieAndGamesPlayed(players)) {
             System.out.println("Tie: Score updated");
         } else {

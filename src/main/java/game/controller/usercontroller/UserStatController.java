@@ -8,6 +8,7 @@ import game.http.response.ConcreteResponse;
 import game.http.response.Response;
 import game.objects.User;
 
+import java.sql.SQLException;
 import java.util.Optional;
 
 public class UserStatController extends ControllerBase {
@@ -17,7 +18,7 @@ public class UserStatController extends ControllerBase {
     }
 
     @Override
-    public Response doWork() {
+    public Response doWorkIntern() throws SQLException {
         Response response = new ConcreteResponse();
         Optional<User> userOpt = this.repositoryHelper.getUserRepository().checkTokenAndGetUser(userRequest.getAuthorizationToken());
         if (userOpt.isPresent()) {

@@ -12,7 +12,7 @@ public class DarkEnt extends MonsterCard {
 
     @Override
     /*
-     * The DarkEnts have such an anger against the Orks and Knights that they immediately smash them in a fight
+     * The Dark Ents have such an anger against the Orks and Knights that they immediately smash them in a fight
      */
     public FightOutcome attack(CardBase competitor) {
         if (competitor instanceof Ork || competitor instanceof Knight) {

@@ -10,6 +10,7 @@ import game.http.response.Response;
 import game.objects.Deck;
 import game.objects.User;
 
+import java.sql.SQLException;
 import java.util.Optional;
 
 public class DeckController extends ControllerBase {
@@ -21,19 +22,14 @@ public class DeckController extends ControllerBase {
     }
 
     @Override
-    public Response doWork() {
+    public Response doWorkIntern() throws SQLException {
         Response response = new ConcreteResponse();
         Optional<User> userOpt = this.repositoryHelper.getUserRepository().checkTokenAndGetUser(userRequest.getAuthorizationToken());
         if (userOpt.isPresent()) {
             if (userRequest.getMethod() == HttpMethod.GET) {
-                Optional<Deck> deckOpt = this.repositoryHelper.getDeckRepository().getDeckByUsername(userOpt.get().getUsername());
-                if (deckOpt.isPresent()) {
-                    Deck deck = deckOpt.get();
-                    response.setContent(deck.toString());
-                    response.setStatus(StatusCodeEnum.SC_200);
-                } else {
-                    response.setStatus(StatusCodeEnum.SC_500);
-                }
+                Deck deck = this.repositoryHelper.getDeckRepository().getDeckByUsername(userOpt.get().getUsername());
+                response.setContent(deck.toString());
+                response.setStatus(StatusCodeEnum.SC_200);
             } else if (userRequest.getMethod() == HttpMethod.PUT) {
                 if (userRequest.getModel() instanceof DeckModel) {
                     userOpt = this.repositoryHelper.getDeckRepository().setUserDeck(userOpt.get(), (DeckModel) userRequest.getModel());

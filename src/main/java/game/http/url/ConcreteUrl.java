@@ -32,11 +32,11 @@ public class ConcreteUrl implements Url {
         if (url.contains("?")) {
             String[] urlPathParams = url.split("\\?");
             readUrlSegments(urlPathParams[0]);
-            urlPath = this.getPathEnumFromString(this.urlSegments.get(this.urlSegments.size() - 1));
+            urlPath = this.getPathEnumFromString(this.urlSegments.get(0));
             readUrlParams(urlPathParams[1]);
         } else {
             readUrlSegments(url);
-            urlPath = this.getPathEnumFromString(this.urlSegments.get(this.urlSegments.size() - 1));
+            urlPath = this.getPathEnumFromString(this.urlSegments.get(0));
         }
         readUrlFileName(urlSegments);
     }

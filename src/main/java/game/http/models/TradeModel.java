@@ -10,15 +10,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TradeModel implements HttpModel {
-    @JsonProperty("Id")
-    private String id;
-
     @JsonProperty("CardToTrade")
     private String cardId;
 
-    @JsonProperty("Type")
-    private String type;
+    @JsonProperty("DesiredCardName")
+    private String desiredCardName;
 
-    @JsonProperty("MinimumDamage")
-    private String minDamage;
+    @JsonProperty("DesiredCoins")
+    private int desiredCoins;
 }

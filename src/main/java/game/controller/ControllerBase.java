@@ -1,8 +1,13 @@
 package game.controller;
 
+import game.db.DatabaseConnectionProvider;
 import game.helper.RepositoryHelper;
 import game.http.request.Request;
+import game.http.response.ConcreteResponse;
 import game.http.response.Response;
+
+import java.sql.Connection;
+import java.sql.SQLException;
 
 public abstract class ControllerBase {
 
@@ -19,5 +24,26 @@ public abstract class ControllerBase {
         this.repositoryHelper = repositoryHelper;
     }
 
-    public abstract Response doWork();
+    public Response doWork() {
+        Response response = new ConcreteResponse();
+        try (Connection connection = DatabaseConnectionProvider.getConnection()) {
+            this.repositoryHelper.getUserRepository().beginTransaction();
+            // ---
+            response = this.doWorkIntern();
+            // ---
+            this.repositoryHelper.getUserRepository().endTransaction();
+        } catch (Exception ex) {
+            // rollback
+            ex.printStackTrace();
+            System.out.println("Rollback!");
+            try {
+                this.repositoryHelper.getUserRepository().doRollback();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return response;
+    }
+
+    protected abstract Response doWorkIntern() throws SQLException;
 }

@@ -12,32 +12,36 @@ package game.objects.enums;
  */
 public enum CardsEnum {
     // Monstercards
-    DRAGON(RarityEnum.MODERATELY_RARE),
-    FIRE_ELF(RarityEnum.COMMON),
-    FIRE_WIZARD(RarityEnum.SLIGHTLY_RARE),
-    GREY_GOBLIN(RarityEnum.COMMON),
-    KNIGHT(RarityEnum.SLIGHTLY_RARE),
-    KRAKEN(RarityEnum.MODERATELY_RARE),
-    ORK(RarityEnum.COMMON),
-    DARK_BAT(RarityEnum.COMMON),
-    DARK_ENT(RarityEnum.COMMON),
-    WATER_WITCH(RarityEnum.VERY_RARE),
+    DRAGON(RarityEnum.MODERATELY_RARE, "Dragon"),
+    FIRE_ELF(RarityEnum.COMMON, "Fire Elf"),
+    FIRE_WIZARD(RarityEnum.SLIGHTLY_RARE, "Fire Wizard"),
+    GREY_GOBLIN(RarityEnum.COMMON, "Grey Goblin"),
+    KNIGHT(RarityEnum.SLIGHTLY_RARE, "Knight"),
+    KRAKEN(RarityEnum.MODERATELY_RARE, "Kraken"),
+    ORK(RarityEnum.COMMON, "Ork"),
+    DARK_BAT(RarityEnum.COMMON, "Dark Bat"),
+    DARK_ENT(RarityEnum.COMMON, "Dark Ent"),
+    WATER_WITCH(RarityEnum.VERY_RARE, "Water Witch"),
     // Spellcards
-    DARK_SPELL(RarityEnum.MODERATELY_RARE),
-    FIRE_SPELL(RarityEnum.VERY_RARE),
-    WATER_SPELL(RarityEnum.RARE),
-    SLOWNESS_SPELL(RarityEnum.COMMON),
-    SPEED_SPELL(RarityEnum.SLIGHTLY_RARE);
-
+    DARK_SPELL(RarityEnum.MODERATELY_RARE, "Dark Spell"),
+    FIRE_SPELL(RarityEnum.VERY_RARE, "Fire Spell"),
+    WATER_SPELL(RarityEnum.RARE, "Water Spell"),
+    SLOWNESS_SPELL(RarityEnum.COMMON, "Slowness Spell"),
+    SPEED_SPELL(RarityEnum.SLIGHTLY_RARE, "Speed Spell");
 
     private final RarityEnum rarity;
+    private final String name;
 
-    CardsEnum(RarityEnum rarity) {
+    CardsEnum(RarityEnum rarity, String name) {
         this.rarity = rarity;
+        this.name = name;
     }
 
     public RarityEnum getRarity() {
         return rarity;
     }
 
+    public String getName() {
+        return this.name;
+    }
 }

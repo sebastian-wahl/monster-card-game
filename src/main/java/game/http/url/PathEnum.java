@@ -5,7 +5,7 @@ public enum PathEnum {
     USERS,
     SESSIONS,
     PACKAGES,
-    //TRANSACTIONS,
+    TRANSACTIONS,
     CARDS,
     DECK,
     STATS,

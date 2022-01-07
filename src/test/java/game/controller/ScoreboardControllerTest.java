@@ -13,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +21,7 @@ import static game.controller.ControllerBase.WRONG_SECURITY_TOKEN_ERROR_MESSAGE;
 import static game.http.enums.StatusCodeEnum.SC_200;
 import static game.http.enums.StatusCodeEnum.SC_401;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Fail.fail;
 import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
@@ -70,39 +72,53 @@ class ScoreboardControllerTest {
 
     @BeforeEach
     void setUp() {
-        lenient().when(this.repositoryHelper.getUserRepository()).thenReturn(userRepository);
-
-        lenient().when(this.userRequest.getAuthorizationToken()).thenReturn(SECURITY_TOKEN);
-
-        lenient().when(this.userRepository.checkTokenAndGetUser(SECURITY_TOKEN)).thenReturn(Optional.of(user1));
-        lenient().when(this.userRepository.getAllUsers()).thenReturn(List.of(this.user1, this.user2, this.user3));
-        this.scoreboardController = new ScoreboardController(this.userRequest, repositoryHelper);
+        try {
+            lenient().when(this.repositoryHelper.getUserRepository()).thenReturn(userRepository);
+            lenient().when(this.userRequest.getAuthorizationToken()).thenReturn(SECURITY_TOKEN);
+            lenient().when(this.userRepository.checkTokenAndGetUser(SECURITY_TOKEN)).thenReturn(Optional.of(user1));
+            lenient().when(this.userRepository.getAllUsers()).thenReturn(List.of(this.user1, this.user2, this.user3));
+            this.scoreboardController = new ScoreboardController(this.userRequest, repositoryHelper);
+        } catch (SQLException e) {
+            fail("An exception was thrown during the setUp: " + e.getMessage());
+        }
     }
 
     @Test
     void testDoWork_Ok200_SimpleFormat() {
-        lenient().when(this.userRequest.getUrl()).thenReturn(new ConcreteUrl(SIMPLE_FORMAT_URL));
-        Response response = this.scoreboardController.doWork();
-        assertThat(response.getStatus()).isEqualTo(SC_200);
-        assertThat(response.getContent()).isEqualTo("{\"Scoreboard\": {\"1.\": \"" + USERNAME_3 + "\", \"2.\": \"" + USERNAME_2 + "\", \"3.\": \"" + USERNAME_1 + "\"}}");
+        try {
+            Response response = null;
+            lenient().when(this.userRequest.getUrl()).thenReturn(new ConcreteUrl(SIMPLE_FORMAT_URL));
+            response = this.scoreboardController.doWorkIntern();
+            assertThat(response.getStatus()).isEqualTo(SC_200);
+            assertThat(response.getContent()).isEqualTo("{\"Scoreboard\": {\"1.\": \"" + USERNAME_3 + "\", \"2.\": \"" + USERNAME_2 + "\", \"3.\": \"" + USERNAME_1 + "\"}}");
+        } catch (SQLException e) {
+            fail("An exception was thrown during the execution: " + e.getMessage());
+        }
     }
 
 
     @Test
     void testDoWork_Ok200_Extended() {
-        lenient().when(this.userRequest.getUrl()).thenReturn(new ConcreteUrl(NORMAL_FORMAT_URL));
-        Response response = this.scoreboardController.doWork();
-        assertThat(response.getStatus()).isEqualTo(SC_200);
-        assertThat(response.getContent()).isEqualTo("{\"Scoreboard\": {\"1.\": " + user3.toString() + ", \"2.\": " + user2.toString() + ", \"3.\": " + user1.toString() + "}}");
+        try {
+            lenient().when(this.userRequest.getUrl()).thenReturn(new ConcreteUrl(NORMAL_FORMAT_URL));
+            Response response = this.scoreboardController.doWorkIntern();
+            assertThat(response.getStatus()).isEqualTo(SC_200);
+            assertThat(response.getContent()).isEqualTo("{\"Scoreboard\": {\"1.\": " + user3.toString() + ", \"2.\": " + user2.toString() + ", \"3.\": " + user1.toString() + "}}");
+        } catch (SQLException e) {
+            fail("An exception was thrown during the execution: " + e.getMessage());
+        }
     }
 
     @Test
     void testDoWork_Ok401_WrongLogin() {
-        lenient().when(this.userRequest.getAuthorizationToken()).thenReturn(WRONG_SEC_TOKEN);
-        Response response = this.scoreboardController.doWork();
+        try {
+            lenient().when(this.userRequest.getAuthorizationToken()).thenReturn(WRONG_SEC_TOKEN);
+            Response response = this.scoreboardController.doWorkIntern();
 
-        assertThat(response.getStatus()).isEqualTo(SC_401);
-        assertThat(response.getContent()).isEqualTo(WRONG_SECURITY_TOKEN_ERROR_MESSAGE);
+            assertThat(response.getStatus()).isEqualTo(SC_401);
+            assertThat(response.getContent()).isEqualTo(WRONG_SECURITY_TOKEN_ERROR_MESSAGE);
+        } catch (SQLException e) {
+            fail("An exception was thrown during the execution: " + e.getMessage());
+        }
     }
-
 }

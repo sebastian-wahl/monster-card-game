@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -22,6 +23,7 @@ import static game.controller.ControllerBase.WRONG_SECURITY_TOKEN_ERROR_MESSAGE;
 import static game.http.enums.StatusCodeEnum.SC_200;
 import static game.http.enums.StatusCodeEnum.SC_401;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Fail.fail;
 import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
@@ -61,30 +63,40 @@ class StackControllerTest {
 
     @BeforeEach
     void setUp() {
-        lenient().when(this.repositoryHelper.getUserRepository()).thenReturn(userRepository);
-        lenient().when(this.repositoryHelper.getStackRepository()).thenReturn(stackRepository);
 
-        lenient().when(this.userRequest.getAuthorizationToken()).thenReturn(SECURITY_TOKEN);
+        try {
+            lenient().when(this.repositoryHelper.getUserRepository()).thenReturn(userRepository);
+            lenient().when(this.repositoryHelper.getStackRepository()).thenReturn(stackRepository);
 
-        lenient().when(this.userRepository.checkTokenAndGetUser(SECURITY_TOKEN)).thenReturn(Optional.of(user1));
-        lenient().when(this.stackRepository.getUserStack(user1)).thenReturn(Optional.of(user1));
-        this.stackController = new StackController(this.userRequest, repositoryHelper);
+            lenient().when(this.userRequest.getAuthorizationToken()).thenReturn(SECURITY_TOKEN);
+            lenient().when(this.userRepository.checkTokenAndGetUser(SECURITY_TOKEN)).thenReturn(Optional.of(user1));
+            lenient().when(this.stackRepository.getUserStack(user1)).thenReturn(Optional.of(user1));
+            this.stackController = new StackController(this.userRequest, repositoryHelper);
+        } catch (SQLException e) {
+            fail("An exception was thrown during the setUp: " + e.getMessage());
+        }
     }
 
     @Test
     void testDoWork_Ok200() {
-        Response response = this.stackController.doWork();
-
-        assertThat(response.getStatus()).isEqualTo(SC_200);
-        assertThat(response.getContent()).isEqualTo(this.user1Stack.toString());
+        try {
+            Response response = this.stackController.doWorkIntern();
+            assertThat(response.getStatus()).isEqualTo(SC_200);
+            assertThat(response.getContent()).isEqualTo(this.user1Stack.toString());
+        } catch (SQLException e) {
+            fail("An exception was thrown during the execution: " + e.getMessage());
+        }
     }
 
     @Test
     void testDoWork_Ok401_WrongLogin() {
-        lenient().when(this.userRequest.getAuthorizationToken()).thenReturn(WRONG_SEC_TOKEN);
-        Response response = this.stackController.doWork();
-
-        assertThat(response.getStatus()).isEqualTo(SC_401);
-        assertThat(response.getContent()).isEqualTo(WRONG_SECURITY_TOKEN_ERROR_MESSAGE);
+        try {
+            lenient().when(this.userRequest.getAuthorizationToken()).thenReturn(WRONG_SEC_TOKEN);
+            Response response = this.stackController.doWorkIntern();
+            assertThat(response.getStatus()).isEqualTo(SC_401);
+            assertThat(response.getContent()).isEqualTo(WRONG_SECURITY_TOKEN_ERROR_MESSAGE);
+        } catch (SQLException e) {
+            fail("An exception was thrown during the execution: " + e.getMessage());
+        }
     }
 }

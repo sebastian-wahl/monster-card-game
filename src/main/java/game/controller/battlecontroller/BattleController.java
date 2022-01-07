@@ -8,6 +8,7 @@ import game.http.request.Request;
 import game.http.response.ConcreteResponse;
 import game.http.response.Response;
 
+import java.sql.SQLException;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -21,7 +22,7 @@ public class BattleController extends ControllerBase {
     }
 
     @Override
-    public Response doWork() {
+    public Response doWorkIntern() throws SQLException {
         String token = userRequest.getHeaders().get(HttpReady.AUTHORIZATION_KEY.toString());
         Optional<String> tokenValid = this.repositoryHelper.getUserRepository().checkToken(token);
         if (tokenValid.isPresent()) {

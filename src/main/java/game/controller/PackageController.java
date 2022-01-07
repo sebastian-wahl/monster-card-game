@@ -39,7 +39,7 @@ public class PackageController extends ControllerBase {
     public Response doWorkIntern() throws SQLException {
         Response response = new ConcreteResponse();
         if (userRequest.getAuthorizationToken().equals(ADMIN_SECURITY_TOKEN) && this.hasAddAdminPackageUrlParameter()) {
-            response = this.addAdminPackage();
+            this.addAdminPackage(response);
         } else {
             Optional<User> userOpt = this.repositoryHelper.getUserRepository().checkTokenAndGetUser(userRequest.getAuthorizationToken());
             if (userOpt.isPresent()) {
@@ -50,10 +50,10 @@ public class PackageController extends ControllerBase {
                     if (userUpdateOpt.isPresent()) {
                         if (this.hasBuyAdminPackageUrlParameter()) {
                             // buy admin created package
-                            response = this.buyAdminPackage(userUpdateOpt.get());
+                            this.buyAdminPackage(response, userUpdateOpt.get());
                         } else {
                             // buy "random" package
-                            response = this.buyRandomPackage(userUpdateOpt.get());
+                            this.buyRandomPackage(response, userUpdateOpt.get());
                         }
                     }
                 } else {
@@ -80,8 +80,7 @@ public class PackageController extends ControllerBase {
                 this.userRequest.getUrl().getUrlParameters().get(BUY_ADMIN_PACKAGE_PARAMETER).equals(BUY_ADMIN_PACKAGE_VALUE);
     }
 
-    private Response addAdminPackage() throws SQLException {
-        Response response = new ConcreteResponse();
+    private void addAdminPackage(Response response) throws SQLException {
         if (this.userRequest.getModel() instanceof PackageModel) {
             PackageModel packageModel = (PackageModel) this.userRequest.getModel();
             int packageNumber = this.repositoryHelper.getPackageRepository().addAdminPackage();
@@ -111,11 +110,9 @@ public class PackageController extends ControllerBase {
             response.setStatus(StatusCodeEnum.SC_400);
             response.setContent(WRONG_BODY_MESSAGE);
         }
-        return response;
     }
 
-    private Response buyAdminPackage(User user) throws SQLException {
-        Response response = new ConcreteResponse();
+    private void buyAdminPackage(Response response, User user) throws SQLException {
         int freePackageNumber = this.repositoryHelper.getPackageRepository().getFirstAvailablePackageNumber();
         if (freePackageNumber > 0) {
             List<CardBase> cards = this.repositoryHelper.getCardRepository().getCardsFromAdminPackage(freePackageNumber);
@@ -135,11 +132,9 @@ public class PackageController extends ControllerBase {
             response.setStatus(StatusCodeEnum.SC_400);
             response.setContent(NO_ADMIN_PACKAGES_ERROR_MESSAGE);
         }
-        return response;
     }
 
-    private Response buyRandomPackage(User user) throws SQLException {
-        Response response = new ConcreteResponse();
+    private void buyRandomPackage(Response response, User user) throws SQLException {
         Package pack = new Package();
         // set response to error and change if everything worked out
         response.setStatus(StatusCodeEnum.SC_500);
@@ -149,7 +144,5 @@ public class PackageController extends ControllerBase {
             response.setStatus(StatusCodeEnum.SC_200);
             response.setContent(pack.toString());
         }
-
-        return response;
     }
 }

@@ -35,8 +35,8 @@ public class Trade {
                         "\"TradeFinished\":" + tradFinished;
         if (this.tradFinished) {
             out += ", " +
-                    "\"TradedTo\": " + tradedToUser.toString() +
-                    "\"TradedFor\": " + this.formatNoCard(tradedForCard) +
+                    "\"TradedTo\": " + tradedToUser.toString() + ", " +
+                    "\"TradedFor\": " + this.formatNoCard(tradedForCard) + ", " +
                     "\"TradedAt\": " + tradedAt.toString().substring(0, tradedAt.toString().indexOf("."));
         }
         out += "}}";
@@ -44,7 +44,7 @@ public class Trade {
     }
 
     private String formatCardName(CardsEnum e) {
-        return e == null ? "No card selected" : e.getName();
+        return e == null ? "No card selected" : "\"" + e.getName() + "\"";
     }
 
     private String formatNoCard(CardBase c) {

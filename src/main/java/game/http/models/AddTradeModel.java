@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TradeModel implements HttpModel {
+public class AddTradeModel implements HttpModel {
     @JsonProperty("CardToTrade")
     private String cardId;
 

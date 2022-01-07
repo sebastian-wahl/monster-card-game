@@ -3,7 +3,6 @@ package game.repository;
 import game.http.models.DeckModel;
 import game.objects.Deck;
 import game.objects.User;
-import lombok.Synchronized;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -25,20 +24,24 @@ public class DeckRepository extends RepositoryBase {
         super();
     }
 
-    @Synchronized
+
     public boolean isCardInUserDeck(String username, String cardId) throws SQLException {
         try (PreparedStatement preparedStatement = connection.prepareStatement(GET_CARD_COUNT_FOR_ID_AND_USERNAME)) {
             preparedStatement.setString(1, cardId);
             preparedStatement.setString(2, username);
 
             try (ResultSet rs = preparedStatement.executeQuery()) {
-                rs.next();
-                return rs.getInt(1) == 1;
+                if (rs.next()) {
+                    return rs.getInt(1) == 1;
+                } else {
+                    return false;
+                }
+
             }
         }
     }
 
-    @Synchronized
+
     public Deck getDeckByUsername(String username) throws SQLException {
         try (PreparedStatement preparedStatement = connection.prepareStatement(GET_CARDS_FROM_DECK_SQL);) {
             preparedStatement.setString(1, username);
@@ -52,7 +55,7 @@ public class DeckRepository extends RepositoryBase {
      * @param user User for this deck
      * @param deck should only be cards that the user also owns
      */
-    @Synchronized
+
     public Optional<User> setUserDeck(User user, DeckModel deck) throws SQLException {
         if (deck.getIds().length > Deck.INIT_MAX_DECK_SIZE) {
             return Optional.empty();

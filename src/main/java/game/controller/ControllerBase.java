@@ -26,21 +26,29 @@ public abstract class ControllerBase {
 
     public Response doWork() {
         Response response = new ConcreteResponse();
-        try (Connection connection = DatabaseConnectionProvider.getConnection()) {
-            this.repositoryHelper.getUserRepository().beginTransaction();
+        Connection connection = null;
+        try {
+            connection = DatabaseConnectionProvider.getConnection();
+            connection.setAutoCommit(false);
+            this.repositoryHelper.setConnection(connection);
             // ---
             response = this.doWorkIntern();
             // ---
-            this.repositoryHelper.getUserRepository().endTransaction();
+            connection.commit();
+            // close connection
+            connection.close();
         } catch (Exception ex) {
             // rollback
-            ex.printStackTrace();
-            System.out.println("Rollback!");
-            try {
-                this.repositoryHelper.getUserRepository().doRollback();
-            } catch (SQLException e) {
-                e.printStackTrace();
+            if (connection != null) {
+                try {
+                    System.out.println("Rollback!");
+                    connection.rollback();
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             }
+            ex.printStackTrace();
         }
         return response;
     }

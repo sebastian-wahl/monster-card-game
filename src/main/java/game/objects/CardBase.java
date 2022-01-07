@@ -21,6 +21,7 @@ public abstract class CardBase implements Comparable<CardBase> {
     private ElementType elementType;
 
     private int adminPackageNumber = 0;
+    private boolean inTradeInvolved = false;
 
     public final RarityEnum cardRarity;
 

@@ -4,7 +4,6 @@ import game.objects.CardBase;
 import game.objects.Package;
 import game.objects.Stack;
 import game.objects.User;
-import lombok.Synchronized;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -25,7 +24,6 @@ public class StackRepository extends RepositoryBase {
     private static final String REMOVE_CARD_FROM_STACK_END_SQL = "AND username=?;";
 
 
-    @Synchronized
     public Optional<User> removeCardsFromUserStack(User user, List<CardBase> toRemove) throws SQLException {
         try (PreparedStatement preparedStatement = connection.prepareStatement(REMOVE_CARD_FROM_STACK_START_SQL + REMOVE_CARD_FROM_STACK_ID_TEMP_SQL.repeat(toRemove.size()) + REMOVE_CARD_FROM_STACK_END_SQL)) {
             int i = 1;
@@ -36,6 +34,12 @@ public class StackRepository extends RepositoryBase {
             preparedStatement.setString(i, user.getUsername());
 
             if (preparedStatement.executeUpdate() > 0) {
+                if (user.getStack() == null) {
+                    Optional<User> userOptional = this.getUserStack(user);
+                    if (userOptional.isPresent()) {
+                        user = userOptional.get();
+                    }
+                }
                 user.getStack().removeCardsFromStack(toRemove);
                 return Optional.of(user);
             }
@@ -43,12 +47,10 @@ public class StackRepository extends RepositoryBase {
         return Optional.empty();
     }
 
-    @Synchronized
     public Optional<User> addCardsToUserStack(User user, Package p) throws SQLException {
         return this.addCardsToUserStack(user, p.cards);
     }
 
-    @Synchronized
     public Optional<User> addCardsToUserStack(User user, List<CardBase> toAdd) throws SQLException {
         try (PreparedStatement preparedStatement = connection.prepareStatement(ADD_STACK_INSERT_SQL + ADD_STACK_VALUES_TEMPLATE_SQL.repeat(toAdd.size()) + ";")) {
             int i = 1;
@@ -59,6 +61,12 @@ public class StackRepository extends RepositoryBase {
             }
 
             if (preparedStatement.executeUpdate() > 0) {
+                if (user.getStack() == null) {
+                    Optional<User> userOptional = this.getUserStack(user);
+                    if (userOptional.isPresent()) {
+                        user = userOptional.get();
+                    }
+                }
                 user.getStack().addCardsToStack(toAdd);
                 return Optional.of(user);
             }
@@ -66,13 +74,13 @@ public class StackRepository extends RepositoryBase {
         return Optional.empty();
     }
 
-    @Synchronized
+
     public boolean areCardsOwnedByUser(User user, List<CardBase> cardBases) throws SQLException {
         Optional<User> userOpt = this.getUserStack(user);
         return userOpt.map(userobj -> user.getStack().containsAll(cardBases)).orElse(false);
     }
 
-    @Synchronized
+
     public Optional<User> getUserStack(User user) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(GET_STACK_SQL)) {
             statement.setString(1, user.getUsername());
@@ -88,8 +96,8 @@ public class StackRepository extends RepositoryBase {
         List<CardBase> out = new ArrayList<>();
         while (rs.next()) {
             String id = rs.getString(1);
-            this.getCardFromId(id);
-            out.add(this.getCardFromId(id));
+            Optional<CardBase> cardOpt = this.getCardById(id);
+            cardOpt.ifPresent(out::add);
         }
         return out;
     }

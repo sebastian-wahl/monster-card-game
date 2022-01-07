@@ -59,8 +59,6 @@ public class ConcreteRequest implements Request {
 
     private void setHttpModelBasedOnRoute() throws JsonProcessingException {
         switch (this.url.getUrlPath()) {
-            case BATTLES:
-                break;
             case USERS, SESSIONS:
                 if (this.method == HttpMethod.POST) {
                     this.model = o.readValue(this.body, UserModel.class);
@@ -80,7 +78,14 @@ public class ConcreteRequest implements Request {
                 }
                 break;
             case TRADINGS:
-                this.model = o.readValue(this.body, TradeModel.class);
+                if (this.method == HttpMethod.POST) {
+                    if (this.url.getUrlSegments().size() == 1) {
+                        this.model = o.readValue(this.body, AddTradeModel.class);
+                    }
+                    if (this.url.getUrlSegments().size() == 2) {
+                        this.model = o.readValue(this.body, FinishTradeModel.class);
+                    }
+                }
                 break;
             default:
                 this.model = null;

@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public abstract class RepositoryBase {
 
@@ -22,18 +23,6 @@ public abstract class RepositoryBase {
     protected Connection connection;
 
     protected RepositoryBase() {
-    }
-
-    public void doRollback() throws SQLException {
-        this.connection.prepareStatement("ROLLBACK;").executeQuery();
-    }
-
-    public void beginTransaction() throws SQLException {
-        this.connection.prepareStatement("BEGIN;").executeQuery();
-    }
-
-    public void endTransaction() throws SQLException {
-        this.connection.prepareStatement("END;").executeQuery();
     }
 
     protected List<CardBase> getCardsFromResultSet(ResultSet rs) throws SQLException {
@@ -53,16 +42,20 @@ public abstract class RepositoryBase {
         return card;
     }
 
-    protected CardBase getCardFromId(String id) throws SQLException {
+    public Optional<CardBase> getCardById(String id) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(GET_CARD_SQL)) {
             statement.setString(1, id);
             try (ResultSet rs = statement.executeQuery()) {
-                rs.next();
-                String cardEnumName = rs.getString(2);
-                int packageNumber = rs.getInt(4);
-                CardBase card = CardFactory.createCard(CardsEnum.valueOf(cardEnumName.toUpperCase().replace(' ', '_')), id);
-                card.setAdminPackageNumber(packageNumber);
-                return card;
+                if (rs.next()) {
+                    String cardEnumName = rs.getString(2);
+                    int packageNumber = rs.getInt(4);
+                    CardBase card = CardFactory.createCard(CardsEnum.valueOf(cardEnumName.toUpperCase().replace(' ', '_')), id);
+                    card.setAdminPackageNumber(packageNumber);
+                    card.setInTradeInvolved(rs.getBoolean(5));
+                    return Optional.of(card);
+                } else {
+                    return Optional.empty();
+                }
             }
         }
     }

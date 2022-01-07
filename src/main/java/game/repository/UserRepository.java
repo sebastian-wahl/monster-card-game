@@ -12,7 +12,6 @@ import game.http.models.UserModel;
 import game.objects.User;
 import game.objects.UserStatistics;
 import jBCrypt.BCrypt;
-import lombok.Synchronized;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -48,7 +47,7 @@ public class UserRepository extends RepositoryBase {
         algorithm = Algorithm.HMAC256("secret");
     }
 
-    @Synchronized
+
     public List<User> getAllUsers() throws SQLException {
         List<User> userList = new ArrayList<>();
         try (PreparedStatement addUserStatement = connection.prepareStatement(GET_ALL_USER_SQL)) {
@@ -61,7 +60,7 @@ public class UserRepository extends RepositoryBase {
         }
     }
 
-    @Synchronized
+
     public boolean addUserToDb(UserModel userModel) throws SQLException {
         try (PreparedStatement addUserStatement = connection.prepareStatement(ADD_USER_SQL)) {
             addUserStatement.setString(1, userModel.getUsername());
@@ -92,7 +91,11 @@ public class UserRepository extends RepositoryBase {
         try (PreparedStatement addUserStatement = connection.prepareStatement(GET_USER_SQL)) {
             addUserStatement.setString(1, username);
             try (ResultSet ret = addUserStatement.executeQuery()) {
-                return Optional.of(this.setUserFromResultSet(ret));
+                if (ret.next()) {
+                    return Optional.of(this.setUserFromResultSetNoNext(ret));
+                } else {
+                    return Optional.empty();
+                }
             }
         }
     }
@@ -127,7 +130,7 @@ public class UserRepository extends RepositoryBase {
         return false;
     }
 
-    @Synchronized
+
     public boolean updateEloAndGamesPlayed(String winnerUsername, String loserUsername) throws SQLException {
         Optional<User> winnerOpt = this.getUser(winnerUsername);
         Optional<User> loserOpt = this.getUser(loserUsername);
@@ -175,7 +178,7 @@ public class UserRepository extends RepositoryBase {
         return Math.round(1000 * 1.0 / (1.0 + Math.pow(10, (eloB - eloA) / 400.0))) / 1000.0;
     }
 
-    @Synchronized
+
     public boolean loginToken(String token) {
         Optional<String> username = this.checkToken(token);
         if (username.isPresent()) {
@@ -187,7 +190,7 @@ public class UserRepository extends RepositoryBase {
         }
     }
 
-    @Synchronized
+
     public boolean login(UserModel userModel) throws SQLException {
         return this.loginAndGetUser(userModel.getUsername(), userModel.getPassword()).isPresent();
     }
@@ -196,7 +199,7 @@ public class UserRepository extends RepositoryBase {
         return BCrypt.checkpw(plainPassword, hashedPassword);
     }
 
-    @Synchronized
+
     public Optional<User> update(User user) throws SQLException {
         Optional<User> defaultUserOpt = this.getUser(user.getUsername());
         if (defaultUserOpt.isPresent() && this.doUpdate(defaultUserOpt.get(), user)) {
@@ -228,11 +231,6 @@ public class UserRepository extends RepositoryBase {
 
     private static <T> T whenNullElse(T object, T defaultObject) {
         return object != null ? object : defaultObject;
-    }
-
-    private User setUserFromResultSet(ResultSet ret) throws SQLException {
-        ret.next();
-        return this.setUserFromResultSetNoNext(ret);
     }
 
     private User setUserFromResultSetNoNext(ResultSet ret) throws SQLException {

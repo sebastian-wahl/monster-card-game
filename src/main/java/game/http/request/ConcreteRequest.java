@@ -60,7 +60,7 @@ public class ConcreteRequest implements Request {
     private void setHttpModelBasedOnRoute() throws JsonProcessingException {
         switch (this.url.getUrlPath()) {
             case USERS, SESSIONS:
-                if (this.method == HttpMethod.POST) {
+                if (this.method == HttpMethod.POST || this.method == HttpMethod.PUT) {
                     this.model = o.readValue(this.body, UserModel.class);
                 }
                 break;

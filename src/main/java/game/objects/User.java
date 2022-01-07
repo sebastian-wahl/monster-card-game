@@ -16,8 +16,8 @@ public class User {
     private String bio;
     private String image;
 
-    private int coins;
-    private double elo;
+    private int coins = -1;
+    private double elo = -1;
 
     // stats
     UserStatistics userStatistics;

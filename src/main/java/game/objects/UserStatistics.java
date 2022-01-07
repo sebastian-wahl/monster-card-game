@@ -27,7 +27,7 @@ public class UserStatistics {
     }
 
     public double getWinRatio() {
-        return this.winCount / (this.loseCount + 0.0);
+        return (this.winCount + 0.0) / (this.loseCount + this.tieCount + 0.0);
     }
 
     public int getGamesPlayed() {

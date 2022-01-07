@@ -1,6 +1,6 @@
 package game.controller;
 
-import game.controller.usercontroller.AddUserController;
+import game.controller.usercontroller.AddAndEditUserController;
 import game.helper.RepositoryHelper;
 import game.http.models.UserModel;
 import game.http.request.Request;
@@ -23,7 +23,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class AddUserControllerTest {
+class AddAndEditUserControllerTest {
 
     @Mock
     private UserRepository userRepository;
@@ -34,7 +34,7 @@ class AddUserControllerTest {
     @Mock
     private Request userRequest;
 
-    private AddUserController userController;
+    private AddAndEditUserController userController;
 
     private static final String USERNAME_PASSWORD_ERROR_MESSAGE = "Username and Password must be longer than 4 characters!";
 
@@ -48,7 +48,7 @@ class AddUserControllerTest {
     @BeforeEach
     void setUp() {
         lenient().when(this.repositoryHelper.getUserRepository()).thenReturn(this.userRepository);
-        this.userController = new AddUserController(userRequest, repositoryHelper);
+        this.userController = new AddAndEditUserController(userRequest, repositoryHelper);
     }
 
     private void setUpLoginReturnTrue() {

@@ -2,21 +2,25 @@ package game.controller.usercontroller;
 
 import game.controller.ControllerBase;
 import game.helper.RepositoryHelper;
+import game.http.HttpMethod;
 import game.http.enums.StatusCodeEnum;
 import game.http.models.UserModel;
 import game.http.request.Request;
 import game.http.response.ConcreteResponse;
 import game.http.response.Response;
+import game.objects.User;
 import game.objects.exceptions.repositories.UserOrPasswordEmptyException;
 
 import java.sql.SQLException;
+import java.util.Optional;
 
-import static game.http.enums.StatusCodeEnum.SC_201;
-import static game.http.enums.StatusCodeEnum.SC_400;
+import static game.http.enums.StatusCodeEnum.*;
 
-public class AddUserController extends ControllerBase {
+public class AddAndEditUserController extends ControllerBase {
 
-    public AddUserController(Request request, RepositoryHelper repositoryHelper) {
+    private static final String OWN_PROFILE_ERROR_MESSAGE = "You can only edit your own profile.";
+
+    public AddAndEditUserController(Request request, RepositoryHelper repositoryHelper) {
         super(request, repositoryHelper);
     }
 
@@ -25,6 +29,52 @@ public class AddUserController extends ControllerBase {
     @Override
     public Response doWorkIntern() throws SQLException {
         Response response = new ConcreteResponse();
+        if (this.userRequest.getUrl().getUrlSegments().size() == 1) {
+            addUser(response);
+        }
+        if (this.userRequest.getUrl().getUrlSegments().size() == 2) {
+            Optional<User> userOpt = this.repositoryHelper.getUserRepository().checkTokenAndGetUser(this.userRequest.getAuthorizationToken());
+            if (userOpt.isPresent()) {
+                editOrGetUser(response, userOpt.get());
+            } else {
+                response.setStatus(StatusCodeEnum.SC_401);
+                response.setContent(WRONG_SECURITY_TOKEN_ERROR_MESSAGE);
+            }
+        }
+        return response;
+    }
+
+    private void editOrGetUser(Response response, User user) throws SQLException {
+        String username = this.userRequest.getUrl().getUrlSegments().get(1);
+        if (this.userRequest.getMethod() == HttpMethod.GET) {
+            // return user
+            Optional<User> userOpt = this.repositoryHelper.getUserRepository().getUser(username);
+            if (userOpt.isPresent()) {
+                response.setStatus(SC_200);
+                response.setContent(userOpt.get().toString());
+            }
+        } else if (this.userRequest.getMethod() == HttpMethod.PUT && username.equals(user.getUsername())) {
+            if (this.userRequest.getModel() instanceof UserModel) {
+                UserModel newUserModel = (UserModel) this.userRequest.getModel();
+                User newUser = User.builder().username(username)
+                        .displayName(newUserModel.getDisplayName())
+                        .bio(newUserModel.getBio())
+                        .image(newUserModel.getImage())
+                        .build();
+                Optional<User> userOpt = this.repositoryHelper.getUserRepository().update(newUser);
+                if (userOpt.isPresent()) {
+                    response.setStatus(SC_200);
+                    response.setContent(userOpt.get().toString());
+                }
+            }
+        } else {
+            response.setContent(OWN_PROFILE_ERROR_MESSAGE);
+        }
+
+    }
+
+
+    private void addUser(Response response) throws SQLException {
         try {
             if (this.userRequest.getModel() instanceof UserModel) {
                 UserModel userModel = (UserModel) this.userRequest.getModel();
@@ -47,7 +97,6 @@ public class AddUserController extends ControllerBase {
             response.setStatus(SC_400);
             response.setContent(ex.getMessage());
         }
-        return response;
     }
 
     private boolean addUser(UserModel userModel) throws SQLException {

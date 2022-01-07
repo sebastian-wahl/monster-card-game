@@ -3,7 +3,7 @@ package game.server;
 import game.controller.*;
 import game.controller.battlecontroller.BattleController;
 import game.controller.battlecontroller.BattleQueueHandler;
-import game.controller.usercontroller.AddUserController;
+import game.controller.usercontroller.AddAndEditUserController;
 import game.controller.usercontroller.LoginUserController;
 import game.controller.usercontroller.UserStatController;
 import game.helper.RepositoryHelper;
@@ -42,7 +42,7 @@ public class ClientGameRunner implements Runnable {
     public Response pickController(Request request) {
         PathEnum path = request.getUrl().getUrlPath();
         ControllerBase controller = switch (path) {
-            case USERS -> new AddUserController(request, repositoryHelper);
+            case USERS -> new AddAndEditUserController(request, repositoryHelper);
             case BATTLES -> new BattleController(request, repositoryHelper, battleQueueHandler);
             case SESSIONS -> new LoginUserController(request, repositoryHelper);
             case PACKAGES, TRANSACTIONS -> new PackageController(request, repositoryHelper);

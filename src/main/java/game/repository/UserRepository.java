@@ -140,6 +140,9 @@ public class UserRepository extends RepositoryBase {
 
             double eloUserWinnerNew = calculateNewEloWinner(winner.getElo(), loser.getElo());
             double eloUserLoserNew = calculateNewEloLoser(loser.getElo(), winner.getElo());
+            if (eloUserLoserNew < 0) {
+                eloUserLoserNew = 0.0;
+            }
 
             // update winner
             User updatedUser = winner.copy();
@@ -203,9 +206,22 @@ public class UserRepository extends RepositoryBase {
     public Optional<User> update(User user) throws SQLException {
         Optional<User> defaultUserOpt = this.getUser(user.getUsername());
         if (defaultUserOpt.isPresent() && this.doUpdate(defaultUserOpt.get(), user)) {
+            this.updateUserObject(user, defaultUserOpt.get());
             return Optional.of(user);
         }
         return Optional.empty();
+    }
+
+    private void updateUserObject(User toUpdate, User defaultValues) {
+        if (toUpdate.getId() == null) toUpdate.setId(defaultValues.getId());
+        if (toUpdate.getUsername() == null) toUpdate.setUsername(defaultValues.getUsername());
+        if (toUpdate.getPassword() == null) toUpdate.setPassword(defaultValues.getPassword());
+        if (toUpdate.getDisplayName() == null) toUpdate.setDisplayName(defaultValues.getDisplayName());
+        if (toUpdate.getBio() == null) toUpdate.setBio(defaultValues.getBio());
+        if (toUpdate.getImage() == null) toUpdate.setImage(defaultValues.getImage());
+        if (toUpdate.getCoins() == -1) toUpdate.setCoins(defaultValues.getCoins());
+        if (toUpdate.getElo() == -1) toUpdate.setElo(defaultValues.getElo());
+        if (toUpdate.getUserStatistics() == null) toUpdate.setUserStatistics(defaultValues.getUserStatistics());
     }
 
     /**
@@ -219,11 +235,11 @@ public class UserRepository extends RepositoryBase {
             updateUserStatement.setString(1, whenNullElse(updatedUser.getDisplayName(), defaultUserData.getDisplayName()));
             updateUserStatement.setString(2, whenNullElse(updatedUser.getBio(), defaultUserData.getBio()));
             updateUserStatement.setString(3, whenNullElse(updatedUser.getImage(), defaultUserData.getImage()));
-            updateUserStatement.setInt(4, whenNullElse(updatedUser.getCoins(), defaultUserData.getCoins()));
-            updateUserStatement.setDouble(5, whenNullElse(updatedUser.getElo(), defaultUserData.getElo()));
-            updateUserStatement.setInt(6, whenNullElse(updatedUser.getUserStatistics().getWinCount(), defaultUserData.getUserStatistics().getWinCount()));
-            updateUserStatement.setInt(7, whenNullElse(updatedUser.getUserStatistics().getLoseCount(), defaultUserData.getUserStatistics().getLoseCount()));
-            updateUserStatement.setInt(8, whenNullElse(updatedUser.getUserStatistics().getTieCount(), defaultUserData.getUserStatistics().getTieCount()));
+            updateUserStatement.setInt(4, whenNegativElse(updatedUser.getCoins(), defaultUserData.getCoins()));
+            updateUserStatement.setDouble(5, whenNegativElse(updatedUser.getElo(), defaultUserData.getElo()));
+            updateUserStatement.setInt(6, updatedUser.getUserStatistics() != null ? updatedUser.getUserStatistics().getWinCount() : defaultUserData.getUserStatistics().getWinCount());
+            updateUserStatement.setInt(7, updatedUser.getUserStatistics() != null ? updatedUser.getUserStatistics().getLoseCount() : defaultUserData.getUserStatistics().getLoseCount());
+            updateUserStatement.setInt(8, updatedUser.getUserStatistics() != null ? updatedUser.getUserStatistics().getTieCount() : defaultUserData.getUserStatistics().getTieCount());
             updateUserStatement.setString(9, defaultUserData.getUsername());
             return updateUserStatement.executeUpdate() > 0;
         }
@@ -231,6 +247,14 @@ public class UserRepository extends RepositoryBase {
 
     private static <T> T whenNullElse(T object, T defaultObject) {
         return object != null ? object : defaultObject;
+    }
+
+    private static int whenNegativElse(int a, int b) {
+        return a < 0 ? b : a;
+    }
+
+    private static double whenNegativElse(double a, double b) {
+        return a < 0 ? b : a;
     }
 
     private User setUserFromResultSetNoNext(ResultSet ret) throws SQLException {

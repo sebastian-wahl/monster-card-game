@@ -20,30 +20,9 @@ public interface Url {
      */
     Map<String, String> getUrlParameters();
 
-
-    /**
-     * @return Returns the number of parameter of the url. Returns 0 if there are no parameter.
-     */
-    int getParameterCount();
-
     /**
      * @return Returns the segments of the url path. A segment is divided by '/'
      * chars. Never returns null.
      */
     List<String> getUrlSegments();
-
-    /**
-     * @return Returns the filename (with extension) of the url path. If the url
-     * contains no filename, an empty string is returned. Never returns
-     * null. A filename is present in the url, if the last segment
-     * contains a name with at least one dot.
-     */
-    String getFileName();
-
-    /**
-     * @return Returns the extension of the url filename, including the leading
-     * dot. If the url contains no filename, an empty string is returned.
-     * Never returns null.
-     */
-    String getFileExtension();
 }

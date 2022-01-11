@@ -12,7 +12,6 @@ import java.util.Map;
 
 import static game.http.HttpReady.*;
 import static game.http.enums.StatusCodeEnum.*;
-import static game.server.Server.DEFAUlT_SERVER_NAME;
 
 public class ConcreteResponse implements Response {
 
@@ -28,15 +27,6 @@ public class ConcreteResponse implements Response {
         headers = new HashMap<>();
         this.status = SC_400;
         this.setContent("Bad request");
-    }
-
-
-    @Override
-    public int getContentLength() {
-        if (headers.containsKey(CONTENT_LENGTH_KEY.toString()))
-            return Integer.parseInt(headers.get(CONTENT_LENGTH_KEY.toString()));
-        else
-            return 0;
     }
 
     private void setContentLength() {
@@ -72,17 +62,6 @@ public class ConcreteResponse implements Response {
     @Override
     public void addHeader(String header, String value) {
         this.headers.put(header, value);
-    }
-
-    @Override
-    public String getServerHeader() {
-        return headers.getOrDefault(SERVER_NAME_KEY.toString(), DEFAUlT_SERVER_NAME);
-    }
-
-
-    @Override
-    public void setServerHeader(String server) {
-        headers.put(SERVER_NAME_KEY.toString(), server);
     }
 
     @Override

@@ -13,19 +13,11 @@ public class ConcreteUrl implements Url {
     private List<String> urlSegments;
     @Getter
     private Map<String, String> urlParameters;
-    @Getter
-    private String fileName;
-    @Getter
-    private String fileExtension;
 
     public ConcreteUrl(String url) {
         this.url = url;
         this.urlParameters = new HashMap<>();
         splitUrl(url);
-
-        // set defaults
-        this.fileExtension = "";
-        this.fileName = "";
     }
 
     public void splitUrl(String url) {
@@ -38,7 +30,6 @@ public class ConcreteUrl implements Url {
             readUrlSegments(url);
             urlPath = this.getPathEnumFromString(this.urlSegments.get(0));
         }
-        readUrlFileName(urlSegments);
     }
 
     private PathEnum getPathEnumFromString(String path) {
@@ -62,23 +53,8 @@ public class ConcreteUrl implements Url {
         }
     }
 
-    public void readUrlFileName(List<String> urlSegments) {
-        String lastSegment = urlSegments.get(urlSegments.size() - 1);
-        if (lastSegment.contains(".")) {
-            fileName = lastSegment;
-            fileExtension = lastSegment.split("\\.")[1];
-        }
-    }
-
     @Override
     public String getRawUrl() {
         return this.url;
     }
-
-
-    @Override
-    public int getParameterCount() {
-        return this.urlParameters != null ? this.urlParameters.size() : 0;
-    }
-
 }

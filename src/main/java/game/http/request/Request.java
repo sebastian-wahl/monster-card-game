@@ -50,10 +50,4 @@ public interface Request {
      * no content.
      */
     String getContent();
-
-    /**
-     * @return Returns the request content (body) as byte[] or null if there is
-     * no content.
-     */
-    byte[] getContentBytes();
 }

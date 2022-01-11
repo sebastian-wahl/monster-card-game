@@ -4,20 +4,8 @@ import game.http.enums.StatusCodeEnum;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Map;
 
 public interface Response {
-    /**
-     * @return Returns a writable map of the response headers. Never returns
-     * null.
-     */
-    Map<String, String> getHeaders();
-
-    /**
-     * @return Returns the content length or 0 if no content is set yet.
-     */
-    int getContentLength();
-
     /**
      * @return Gets the content type of the response.
      */
@@ -63,18 +51,6 @@ public interface Response {
      * @param value
      */
     void addHeader(String header, String value);
-
-    /**
-     * @return Returns the Server response header. Default "MonsterCardGame-Server"
-     */
-    String getServerHeader();
-
-    /**
-     * Sets the Server response header.
-     *
-     * @param server
-     */
-    void setServerHeader(String server);
 
     /**
      * @param content Sets a string content. The content will be encoded in UTF-8.

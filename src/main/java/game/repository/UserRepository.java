@@ -34,9 +34,8 @@ public class UserRepository extends RepositoryBase {
 
     private static final String UPDATE_USER_SQL = "UPDATE mcg_user SET display_name = ?, bio = ?, image = ?, coins = ?, elo = ?, win_count = ?, lose_count = ?, tie_count = ? WHERE username = ?;";
 
-    private static final String GET_USER_TOKEN_SQL = "SELECT * from mcg_user WHERE security_token = ?;";
 
-    // elo K-factor, mean maximum amount of elo points that the user can gain or loose;
+    /* elo K-factor, mean maximum amount of elo points that the user can gain or loose */
     private static final int K_FACTOR = 16;
     public static final int TOKEN_VALID_PERIOD_SECONDS = 3600;
 

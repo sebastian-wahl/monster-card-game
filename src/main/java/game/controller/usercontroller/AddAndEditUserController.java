@@ -45,32 +45,34 @@ public class AddAndEditUserController extends ControllerBase {
     }
 
     private void editOrGetUser(Response response, User user) throws SQLException {
-        String username = this.userRequest.getUrl().getUrlSegments().get(1);
-        if (this.userRequest.getMethod() == HttpMethod.GET) {
-            // return user
-            Optional<User> userOpt = this.repositoryHelper.getUserRepository().getUser(username);
-            if (userOpt.isPresent()) {
-                response.setStatus(SC_200);
-                response.setContent(userOpt.get().toString());
-            }
-        } else if (this.userRequest.getMethod() == HttpMethod.PUT && username.equals(user.getUsername())) {
-            if (this.userRequest.getModel() instanceof UserModel) {
-                UserModel newUserModel = (UserModel) this.userRequest.getModel();
-                User newUser = User.builder().username(username)
-                        .displayName(newUserModel.getDisplayName())
-                        .bio(newUserModel.getBio())
-                        .image(newUserModel.getImage())
-                        .build();
-                Optional<User> userOpt = this.repositoryHelper.getUserRepository().update(newUser);
+        String username = this.userRequest.getUrl().getUrlSegments().get(1).toLowerCase();
+        if (!username.equals(user.getUsername())) {
+            response.setStatus(SC_400);
+            response.setContent(OWN_PROFILE_ERROR_MESSAGE);
+        } else {
+            if (this.userRequest.getMethod() == HttpMethod.GET) {
+                // return user
+                Optional<User> userOpt = this.repositoryHelper.getUserRepository().getUser(username);
                 if (userOpt.isPresent()) {
                     response.setStatus(SC_200);
                     response.setContent(userOpt.get().toString());
                 }
+            } else if (this.userRequest.getMethod() == HttpMethod.PUT) {
+                if (this.userRequest.getModel() instanceof UserModel) {
+                    UserModel newUserModel = (UserModel) this.userRequest.getModel();
+                    User newUser = User.builder().username(username)
+                            .displayName(newUserModel.getDisplayName())
+                            .bio(newUserModel.getBio())
+                            .image(newUserModel.getImage())
+                            .build();
+                    Optional<User> userOpt = this.repositoryHelper.getUserRepository().update(newUser);
+                    if (userOpt.isPresent()) {
+                        response.setStatus(SC_200);
+                        response.setContent(userOpt.get().toString());
+                    }
+                }
             }
-        } else {
-            response.setContent(OWN_PROFILE_ERROR_MESSAGE);
         }
-
     }
 
 

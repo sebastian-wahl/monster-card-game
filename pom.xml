@@ -85,6 +85,12 @@
             <version>2.13.0</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.0.2</version>
+            <scope>test</scope>
+        </dependency>
 
     </dependencies>
 

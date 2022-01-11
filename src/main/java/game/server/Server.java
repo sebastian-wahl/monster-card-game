@@ -14,8 +14,6 @@ import java.util.concurrent.Executors;
 public class Server {
     public static final int PORT = 10001;
 
-    public static final String DEFAUlT_SERVER_NAME = "MonsterCardGame-Server";
-
     public boolean listening = true;
     private BattleQueueHandler battleQueueHandler;
     private RepositoryHelper repositoryHelper;

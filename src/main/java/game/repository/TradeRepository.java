@@ -29,7 +29,7 @@ public class TradeRepository extends RepositoryBase {
 
     private static final String REMOVE_TRADE_SQL = "DELETE FROM trade WHERE id = ?;";
 
-    private static final String UPDATE_AND_FINISH_TRADE_SQL = "UPDATE trade SET trade_finished = ?,  traded_to_user = ?,  traded_for_card_id = ?, traded_at = ? RETURNING *;";
+    private static final String UPDATE_AND_FINISH_TRADE_SQL = "UPDATE trade SET trade_finished = ?,  traded_to_user = ?,  traded_for_card_id = ?, traded_at = ? WHERE trade_id = ? RETURNING *;";
 
 
     public Optional<Trade> getTradeById(String tradeId) throws SQLException {
@@ -69,6 +69,7 @@ public class TradeRepository extends RepositoryBase {
             preparedStatement.setString(2, tradedTo.getUsername());
             preparedStatement.setString(3, tradedForCardId);
             preparedStatement.setTimestamp(4, Timestamp.from(Instant.now()));
+            preparedStatement.setString(5, trade.getId().toString());
             try (ResultSet rs = preparedStatement.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(this.getTradeFromResultSet(rs));

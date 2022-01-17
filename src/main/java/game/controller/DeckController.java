@@ -17,6 +17,9 @@ public class DeckController extends ControllerBase {
 
     private static final String TOO_MANY_CARDS_FOR_DECK_ERROR_MESSAGE = "Please only choose 4 cards for your deck.";
 
+    private static final String FORMAT_PARAMETER = "format";
+    private static final String FORMAT_PARAMETER_VALUE = "plain";
+
     public DeckController(Request request, RepositoryHelper repositoryHelper) {
         super(request, repositoryHelper);
     }
@@ -28,7 +31,11 @@ public class DeckController extends ControllerBase {
         if (userOpt.isPresent()) {
             if (userRequest.getMethod() == HttpMethod.GET) {
                 Deck deck = this.repositoryHelper.getDeckRepository().getDeckByUsername(userOpt.get().getUsername());
-                response.setContent(deck.toString());
+                if (this.hasFormatPlaneUrlParameter()) {
+                    response.setContent(deck.toPlainString());
+                } else {
+                    response.setContent(deck.toString());
+                }
                 response.setStatus(StatusCodeEnum.SC_200);
             } else if (userRequest.getMethod() == HttpMethod.PUT) {
                 if (userRequest.getModel() instanceof DeckModel) {
@@ -52,5 +59,11 @@ public class DeckController extends ControllerBase {
             response.setContent(WRONG_SECURITY_TOKEN_ERROR_MESSAGE);
         }
         return response;
+    }
+
+    private boolean hasFormatPlaneUrlParameter() {
+        return !this.userRequest.getUrl().getUrlParameters().isEmpty() &&
+                this.userRequest.getUrl().getUrlParameters().get(FORMAT_PARAMETER) != null &&
+                this.userRequest.getUrl().getUrlParameters().get(FORMAT_PARAMETER).equals(FORMAT_PARAMETER_VALUE);
     }
 }

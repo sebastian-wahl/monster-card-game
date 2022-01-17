@@ -27,16 +27,14 @@ public class UserStatController extends ControllerBase {
             response.setStatus(StatusCodeEnum.SC_200);
         } else {
             response.setStatus(StatusCodeEnum.SC_401);
-            response.setContent("Token is invalid. Please login again.");
+            response.setContent(WRONG_SECURITY_TOKEN_ERROR_MESSAGE);
         }
         return response;
     }
 
     private String buildStats(User user) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{\"").append(user.getUsername()).append(" statistics\": ");
-        sb.append(user.getStatisticString());
-        sb.append("}");
-        return sb.toString();
+        return "{\"" + user.getUsername() + "\": " +
+                user.getStatisticString() +
+                "}";
     }
 }

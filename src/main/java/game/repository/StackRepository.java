@@ -25,7 +25,8 @@ public class StackRepository extends RepositoryBase {
 
 
     public Optional<User> removeCardsFromUserStack(User user, List<CardBase> toRemove) throws SQLException {
-        try (PreparedStatement preparedStatement = connection.prepareStatement(REMOVE_CARD_FROM_STACK_START_SQL + REMOVE_CARD_FROM_STACK_ID_TEMP_SQL.repeat(toRemove.size()) + REMOVE_CARD_FROM_STACK_END_SQL)) {
+        String query = REMOVE_CARD_FROM_STACK_START_SQL + "(" + (REMOVE_CARD_FROM_STACK_ID_TEMP_SQL + " OR ").repeat(toRemove.size() - 1) + REMOVE_CARD_FROM_STACK_ID_TEMP_SQL + ") " + REMOVE_CARD_FROM_STACK_END_SQL;
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             int i = 1;
             for (CardBase cardBase : toRemove) {
                 preparedStatement.setString(i, cardBase.getId().toString());
@@ -52,7 +53,8 @@ public class StackRepository extends RepositoryBase {
     }
 
     public Optional<User> addCardsToUserStack(User user, List<CardBase> toAdd) throws SQLException {
-        try (PreparedStatement preparedStatement = connection.prepareStatement(ADD_STACK_INSERT_SQL + ADD_STACK_VALUES_TEMPLATE_SQL.repeat(toAdd.size()) + ";")) {
+        String query = ADD_STACK_INSERT_SQL + (ADD_STACK_VALUES_TEMPLATE_SQL + ", ").repeat(toAdd.size() - 1) + ADD_STACK_VALUES_TEMPLATE_SQL + ";";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             int i = 1;
             for (CardBase cardBase : toAdd) {
                 preparedStatement.setString(i, cardBase.getId().toString());

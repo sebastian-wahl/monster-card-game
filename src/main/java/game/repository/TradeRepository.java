@@ -29,7 +29,7 @@ public class TradeRepository extends RepositoryBase {
 
     private static final String REMOVE_TRADE_SQL = "DELETE FROM trade WHERE id = ?;";
 
-    private static final String UPDATE_AND_FINISH_TRADE_SQL = "UPDATE trade SET trade_finished = ?,  traded_to_user = ?,  traded_for_card_id = ?, traded_at = ? WHERE trade_id = ? RETURNING *;";
+    private static final String UPDATE_AND_FINISH_TRADE_SQL = "UPDATE trade SET trade_finished = ?,  traded_to_user = ?,  traded_for_card_id = ?, traded_at = ? WHERE id = ? RETURNING *;";
 
 
     public Optional<Trade> getTradeById(String tradeId) throws SQLException {

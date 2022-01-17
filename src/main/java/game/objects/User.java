@@ -89,21 +89,21 @@ public class User {
                 "\"Bio\": \"" + replaceNullWithUndefined(this.bio) + "\", " +
                 "\"Image\": \"" + replaceNullWithUndefined(this.image) + "\", " +
                 "\"Elo\": \"" + this.elo + "\", " +
-                "\"Statistics:\": { \"Games played\": " + this.userStatistics.getGamesPlayed() + ", " +
+                "\"Statistics\": { \"Games played\": " + this.userStatistics.getGamesPlayed() + ", " +
                 "\"Total Wins\": " + this.userStatistics.getWinCount() + ", " +
-                "\"Total Loses\": " + this.userStatistics.getLoseCount() + ", " +
-                "\"Win/Lose Ratio:\": " + this.userStatistics.getWinRatio() + ", " +
+                "\"Total Losses\": " + this.userStatistics.getLoseCount() + ", " +
+                "\"Win/Lose Ratio\": " + this.userStatistics.getWinRatio() + ", " +
                 "\"Total Ties\": " + this.userStatistics.getTieCount() + "}" +
                 "}}";
     }
 
     public String getStatisticString() {
-        return "{\"Statistics:\": { " +
+        return "{\"Statistics\": { " +
                 "\"Elo\": " + this.elo + ", " +
                 "\"Games played\": " + this.userStatistics.getGamesPlayed() + ", " +
                 "\"Total Wins\": " + this.userStatistics.getWinCount() + ", " +
-                "\"Total Loses\": " + this.userStatistics.getLoseCount() + ", " +
-                "\"Win/Lose Ratio:\": " + this.userStatistics.getWinRatio() + ", " +
+                "\"Total Losses\": " + this.userStatistics.getLoseCount() + ", " +
+                "\"Win/Lose Ratio\": " + this.userStatistics.getWinRatio() + ", " +
                 "\"Total Ties\": " + this.userStatistics.getTieCount() +
                 "}}";
     }

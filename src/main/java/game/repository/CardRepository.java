@@ -5,6 +5,7 @@ import game.objects.CardBase;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.List;
 
 public class CardRepository extends RepositoryBase {
@@ -28,7 +29,6 @@ public class CardRepository extends RepositoryBase {
         }
     }
 
-
     public void addCards(List<CardBase> cards) throws SQLException {
         for (CardBase cardBase : cards) {
             this.addCard(cardBase);
@@ -40,7 +40,12 @@ public class CardRepository extends RepositoryBase {
             statement.setString(1, cardBase.getId().toString());
             statement.setString(2, cardBase.getName());
             statement.setDouble(3, cardBase.getDamage());
-            statement.setInt(4, cardBase.getAdminPackageNumber());
+            if (cardBase.getAdminPackageNumber() != 0) {
+                statement.setInt(4, cardBase.getAdminPackageNumber());
+            } else {
+                statement.setNull(4, Types.INTEGER);
+            }
+            statement.executeUpdate();
         }
     }
 

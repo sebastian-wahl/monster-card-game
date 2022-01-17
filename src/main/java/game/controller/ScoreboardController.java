@@ -61,7 +61,7 @@ public class ScoreboardController extends ControllerBase {
                 sb.append("\"").append(i).append(".\": ");
                 sb.append("\"").append(user.getUsername());
                 if (user.getDisplayName() != null) {
-                    sb.append("/").append(user.getDisplayName());
+                    sb.append(" ~ ").append(user.getDisplayName());
                 }
                 sb.append("\"");
                 if (i < sortedUserList.size()) {

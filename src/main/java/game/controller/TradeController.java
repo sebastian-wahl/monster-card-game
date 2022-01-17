@@ -34,6 +34,9 @@ public class TradeController extends ControllerBase {
     private static final String NO_TRADE_FOUND_ERROR_MESSAGE = "No trade found under the given id:";
     private static final String CARD_NOT_SUITABLE_ERROR_MESSAGE = "The selected card is not suited for this trade. Either the card is involved in another trade or is selected as deck card or does not match the desired card from this trade.";
     private static final String NOT_ENOUGH_COINS_ERROR_MESSAGE = "You do not have enough coins for this trade. Required: ";
+    private static final String CARD_ALREADY_IN_USE_MESSAGE = "The card that was selected for that trade is already in use for another trade.";
+    private static final String TRADE_REMOVED_SUCCESSFULLY = "Trade removed successfully";
+    private static final String ONLY_OWN_TRADES_MESSAGE = "You can only remove your own trades.";
 
     public TradeController(Request request, RepositoryHelper repositoryHelper) {
         super(request, repositoryHelper);
@@ -67,23 +70,22 @@ public class TradeController extends ControllerBase {
             } else if (userRequest.getMethod() == HttpMethod.POST) {
                 // add trade or finish trade
                 switch (this.userRequest.getUrl().getUrlSegments().size()) {
-                    case 1:
-                        addTrade(response, userOpt.get());
-                        break;
-                    case 2:
-                        finishTrade(response, userOpt.get());
-                        break;
+                    case 1 -> addTrade(response, userOpt.get());
+                    case 2 -> finishTrade(response, userOpt.get());
                 }
             } else if (userRequest.getMethod() == HttpMethod.DELETE) {
                 // delete trading deal
                 if (this.userRequest.getUrl().getUrlSegments().size() == 2) {
                     String tradeId = this.userRequest.getUrl().getUrlSegments().get(1);
                     Optional<Trade> tradeOpt = this.repositoryHelper.getTradeRepository().getTradeById(tradeId);
-                    if (tradeOpt.isPresent()) {
+                    if (tradeOpt.isPresent() && tradeOpt.get().getTradeUser().getUsername().equals(userOpt.get().getUsername())) {
                         this.repositoryHelper.getTradeRepository().removeTrade(Trade.builder().id(UUID.fromString(tradeId)).tradeUser(userOpt.get()).build());
                         this.repositoryHelper.getCardRepository().markCardForTrading(tradeOpt.get().getTradeCard().getId().toString(), false);
                         response.setStatus(StatusCodeEnum.SC_200);
-                        response.setContent("Trade removed successfully");
+                        response.setContent(TRADE_REMOVED_SUCCESSFULLY);
+                    } else {
+                        response.setStatus(StatusCodeEnum.SC_400);
+                        response.setContent(ONLY_OWN_TRADES_MESSAGE);
                     }
                 }
             } else {
@@ -114,12 +116,14 @@ public class TradeController extends ControllerBase {
                         Optional<CardBase> toTradeCardOpt = this.repositoryHelper.getCardRepository().getCardById(tradeCardId);
                         if (toTradeCardOpt.isPresent() &&
                                 !toTradeCardOpt.get().isInTradeInvolved() &&
-                                !this.repositoryHelper.getDeckRepository().isCardInUserDeck(user.getUsername(), tradeCardId) &&
-                                toTradeCardOpt.get().getName().equals(toFinishTrade.getDesiredCard().getName())) {
+                                toTradeCardOpt.get().getName().equals(toFinishTrade.getDesiredCard().getName()) &&
+                                !this.repositoryHelper.getDeckRepository().isCardInUserDeck(user.getUsername(), tradeCardId)) {
 
                             Optional<Trade> tradeOpt = this.repositoryHelper.getTradeRepository().finishTrade(toFinishTrade, user, tradeCardId);
                             if (tradeOpt.isPresent()) {
                                 Trade finishedTrade = tradeOpt.get();
+                                // reset card
+                                this.repositoryHelper.getCardRepository().markCardForTrading(finishedTrade.getTradeCard().getId().toString(), false);
                                 // remove cards from trade from user stack
                                 this.repositoryHelper.getStackRepository().removeCardsFromUserStack(finishedTrade.getTradeUser(), List.of(finishedTrade.getTradeCard()));
                                 this.repositoryHelper.getStackRepository().removeCardsFromUserStack(finishedTrade.getTradedToUser(), List.of(finishedTrade.getTradedForCard()));
@@ -151,28 +155,34 @@ public class TradeController extends ControllerBase {
     private void addTrade(Response response, User user) throws SQLException {
         if (this.userRequest.getModel() instanceof AddTradeModel) {
             AddTradeModel addTradeModel = (AddTradeModel) this.userRequest.getModel();
-            // check if card
-            CardBase tradeCard = this.repositoryHelper.getCardRepository().markCardForTrading(addTradeModel.getCardId(), true);
-            if (!this.repositoryHelper.getDeckRepository().isCardInUserDeck(user.getUsername(), tradeCard.getId().toString())) {
-                CardsEnum desiredCard;
-                try {
-                    desiredCard = CardsEnum.valueOf(addTradeModel.getDesiredCardName().toUpperCase());
-                } catch (IllegalArgumentException ex) {
-                    desiredCard = null;
-                }
-                Trade toCreate = Trade.builder()
-                        .id(UUID.randomUUID())
-                        .tradeUser(user)
-                        .tradFinished(false)
-                        .tradeCard(tradeCard)
-                        .desiredCoins(addTradeModel.getDesiredCoins())
-                        .desiredCard(desiredCard)
-                        .build();
+            // check if card is already marked
+            Optional<CardBase> tradeCardOpt = this.repositoryHelper.getCardRepository().getCardById(addTradeModel.getCardId());
+            if (tradeCardOpt.isPresent() && !tradeCardOpt.get().isInTradeInvolved()) {
+                CardBase tradeCard = this.repositoryHelper.getCardRepository().markCardForTrading(addTradeModel.getCardId(), true);
+                if (!this.repositoryHelper.getDeckRepository().isCardInUserDeck(user.getUsername(), tradeCard.getId().toString())) {
+                    CardsEnum desiredCard;
+                    try {
+                        desiredCard = CardsEnum.valueOf(addTradeModel.getDesiredCardName().toUpperCase());
+                    } catch (IllegalArgumentException ex) {
+                        desiredCard = null;
+                    }
+                    Trade toCreate = Trade.builder()
+                            .id(UUID.randomUUID())
+                            .tradeUser(user)
+                            .tradFinished(false)
+                            .tradeCard(tradeCard)
+                            .desiredCoins(addTradeModel.getDesiredCoins())
+                            .desiredCard(desiredCard)
+                            .build();
 
-                if (this.repositoryHelper.getTradeRepository().addTrade(toCreate)) {
-                    response.setStatus(StatusCodeEnum.SC_200);
-                    response.setContent(toCreate.toString());
+                    if (this.repositoryHelper.getTradeRepository().addTrade(toCreate)) {
+                        response.setStatus(StatusCodeEnum.SC_200);
+                        response.setContent(toCreate.toString());
+                    }
                 }
+            } else {
+                response.setStatus(StatusCodeEnum.SC_400);
+                response.setContent(CARD_ALREADY_IN_USE_MESSAGE);
             }
         }
     }
@@ -203,7 +213,7 @@ public class TradeController extends ControllerBase {
         Optional<User> tradeUserOpt = this.repositoryHelper.getUserRepository().getUser(trade.getTradeUser().getUsername());
         tradeUserOpt.ifPresent(trade::setTradeUser);
         if (trade.getTradedToUser() != null) {
-            tradeUserOpt = this.repositoryHelper.getUserRepository().getUser(trade.getTradeUser().getUsername());
+            tradeUserOpt = this.repositoryHelper.getUserRepository().getUser(trade.getTradedToUser().getUsername());
             tradeUserOpt.ifPresent(trade::setTradedToUser);
         }
     }

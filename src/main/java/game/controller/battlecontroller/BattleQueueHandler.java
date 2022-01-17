@@ -18,6 +18,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class BattleQueueHandler {
 
+    private static final String ALREADY_QUEUED_MESSAGE = "User is already queued in another connection.";
     private final RepositoryHelper repositoryHelper;
     private final Map<String, CompletableFuture<Response>> completableFutureMap;
 
@@ -32,7 +33,7 @@ public class BattleQueueHandler {
         if (this.completableFutureMap.containsKey(user)) {
             // user already in queue
             Response response = new ConcreteResponse();
-            response.setContent("User is already queued in another connection.");
+            response.setContent(ALREADY_QUEUED_MESSAGE);
             response.setStatus(StatusCodeEnum.SC_400);
             output.complete(response);
             return output;

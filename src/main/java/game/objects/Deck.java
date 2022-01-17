@@ -63,6 +63,28 @@ public class Deck {
         return Objects.hash(deck);
     }
 
+    public String toPlainString() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("{");
+        if (!this.deck.isEmpty()) {
+            sb.append("\"Deck\": ");
+            sb.append(this.deck.size() > 1 ? "[" : "");
+            for (int i = 0; i < this.deck.size(); i++) {
+                sb.append(this.deck.get(i).toPlainString());
+                if (i < this.deck.size() - 1) {
+                    sb.append(", ");
+                }
+            }
+            sb.append(this.deck.size() > 1 ? "]" : "");
+        } else {
+            sb.append("\"Deck\": \"Empty\"");
+        }
+        sb.append("}");
+
+        return sb.toString();
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

@@ -94,6 +94,10 @@ public abstract class CardBase implements Comparable<CardBase> {
         return this.name.compareTo(anotherCards.getName());
     }
 
+    public String toPlainString() {
+        return "{\"Card\": {\"Name\": \"" + this.name + "\"}}";
+    }
+
     @Override
     public String toString() {
         return "{\"Card\": {\"Id\": \"" + this.id.toString() + "\", \"Name\": \"" + this.name + "\", \"Damage\": " + this.damage + ", \"Elementtype\": \"" + this.elementType.toString() + "\", \"Rarity\": \"" + this.cardRarity.toString() + "\"} }";

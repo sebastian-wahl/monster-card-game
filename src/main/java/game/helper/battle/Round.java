@@ -26,7 +26,7 @@ public class Round {
         return switch (this.fightOutcome) {
             case ATTACKER -> "{\"" + this.user1 + "\": " + this.monster1.toString() + "}";
             case DEFENDER -> "{\"" + this.user2 + "\": " + this.monster2.toString() + "}";
-            case TIE -> "Tie";
+            case TIE -> "\"Tie\"";
         };
     }
 

@@ -1,8 +1,8 @@
-package game.integration.users;
+package integration.users;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import game.integration.MonsterCardIntegrationTest;
+import integration.MonsterCardIntegrationTest;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -18,6 +18,9 @@ import static org.assertj.core.api.AssertionsForClassTypes.fail;
  */
 public class UserIntegrationTest extends MonsterCardIntegrationTest {
 
+    private static final List<String> USER_LOGIN_JSON_NAMES_LIST = List.of("Authorization", "ValidUntil");
+    private static final List<String> USER_GET_USER_JSON_NAMES_LIST = List.of("Username", "Display Name", "Bio", "Image", "Elo", "Statistics");
+
     @Override
     @Test
     public void integrationTest() {
@@ -26,25 +29,35 @@ public class UserIntegrationTest extends MonsterCardIntegrationTest {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode responseObj;
         JsonNode jsonNode;
+        String requestBody;
+        List<String> fieldNames;
         try {
             // create existing users
             createExistingUsers();
 
             // login kienboec get token
-            request = getHttpPostRequest("sessions", List.of("Content-Type", "application/json"), "{\"Username\":\"kienboec\", \"Password\":\"daniel\"}");
+            requestBody = "{\"Username\":\"kienboec\", \"Password\":\"daniel\"}";
+            request = getHttpPostRequest("sessions", List.of("Content-Type", "application/json"), requestBody);
             response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            printRequestAndResponseToConsole(request.toString(), request.headers().toString(), requestBody, response.body());
             assertThat(response.statusCode()).isEqualTo(200);
             assertThat(response.body()).isNotEmpty();
             responseObj = mapper.readTree(response.body());
+            fieldNames = this.namesIteratorToList(responseObj.fieldNames());
+            assertThat(fieldNames.containsAll(USER_LOGIN_JSON_NAMES_LIST)).isTrue();
             jsonNode = responseObj.get("Authorization");
             String kienboecToken = jsonNode.asText();
 
             // login altenhof
-            request = getHttpPostRequest("sessions", List.of("Content-Type", "application/json"), "{\"Username\":\"altenhof\", \"Password\":\"markus\"}");
+            requestBody = "{\"Username\":\"altenhof\", \"Password\":\"markus\"}";
+            request = getHttpPostRequest("sessions", List.of("Content-Type", "application/json"), requestBody);
             response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            printRequestAndResponseToConsole(request.toString(), request.headers().toString(), requestBody, response.body());
             assertThat(response.statusCode()).isEqualTo(200);
             assertThat(response.body()).isNotEmpty();
             responseObj = mapper.readTree(response.body());
+            fieldNames = this.namesIteratorToList(responseObj.fieldNames());
+            assertThat(fieldNames.containsAll(USER_LOGIN_JSON_NAMES_LIST)).isTrue();
             jsonNode = responseObj.get("Authorization");
             String altenhofToken = jsonNode.asText();
 
@@ -71,8 +84,11 @@ public class UserIntegrationTest extends MonsterCardIntegrationTest {
         JsonNode jsonNode;
         HttpResponse<String> response;
         HttpRequest request;
-        request = getHttpPutRequest("/users/kienboec", List.of("Content-Type", "application/json", AUTORISATION_HEADER_KEY, kienboecToken), "{\"Name\": \"Test\",  \"Bio\": \"1234\", \"Image\": \"!\"}");
+        String requestBody;
+        requestBody = "{\"Name\": \"Test\",  \"Bio\": \"1234\", \"Image\": \"!\"}";
+        request = getHttpPutRequest("/users/kienboec", List.of("Content-Type", "application/json", AUTORISATION_HEADER_KEY, kienboecToken), requestBody);
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        printRequestAndResponseToConsole(request.toString(), request.headers().toString(), requestBody, response.body());
         assertThat(response.statusCode()).isEqualTo(200);
         assertThat(response.body()).isNotEmpty();
         responseObj = mapper.readTree(response.body());
@@ -81,8 +97,11 @@ public class UserIntegrationTest extends MonsterCardIntegrationTest {
         assertThat(jsonNode.get("Display Name").asText()).isEqualTo("Test");
         assertThat(jsonNode.get("Bio").asText()).isEqualTo("1234");
         assertThat(jsonNode.get("Image").asText()).isEqualTo("!");
-        request = getHttpPutRequest("/users/kienboec", List.of("Content-Type", "application/json", AUTORISATION_HEADER_KEY, kienboecToken), "{\"Name\": \"Kienboeck\",  \"Bio\": \"Hello!\", \"Image\": \";)\"}");
+
+        requestBody = "{\"Name\": \"Kienboeck\",  \"Bio\": \"Hello!\", \"Image\": \";)\"}";
+        request = getHttpPutRequest("/users/kienboec", List.of("Content-Type", "application/json", AUTORISATION_HEADER_KEY, kienboecToken), requestBody);
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        printRequestAndResponseToConsole(request.toString(), request.headers().toString(), requestBody, response.body());
         assertThat(response.statusCode()).isEqualTo(200);
         assertThat(response.body()).isNotEmpty();
         responseObj = mapper.readTree(response.body());
@@ -92,8 +111,11 @@ public class UserIntegrationTest extends MonsterCardIntegrationTest {
         assertThat(jsonNode.get("Bio").asText()).isEqualTo("Hello!");
         assertThat(jsonNode.get("Image").asText()).isEqualTo(";)");
 
-        request = getHttpPutRequest("/users/altenhof", List.of("Content-Type", "application/json", AUTORISATION_HEADER_KEY, altenhofToken), "{\"Name\": \"Privat\",  \"Bio\": \"Not welcome!\", \"Image\": \">:/\"}");
+
+        requestBody = "{\"Name\": \"Privat\",  \"Bio\": \"Not welcome!\", \"Image\": \">:/\"}";
+        request = getHttpPutRequest("/users/altenhof", List.of("Content-Type", "application/json", AUTORISATION_HEADER_KEY, altenhofToken), requestBody);
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        printRequestAndResponseToConsole(request.toString(), request.headers().toString(), requestBody, response.body());
         assertThat(response.statusCode()).isEqualTo(200);
         assertThat(response.body()).isNotEmpty();
         responseObj = mapper.readTree(response.body());
@@ -102,8 +124,11 @@ public class UserIntegrationTest extends MonsterCardIntegrationTest {
         assertThat(jsonNode.get("Display Name").asText()).isEqualTo("Privat");
         assertThat(jsonNode.get("Bio").asText()).isEqualTo("Not welcome!");
         assertThat(jsonNode.get("Image").asText()).isEqualTo(">:/");
-        request = getHttpPutRequest("/users/altenhof", List.of("Content-Type", "application/json", AUTORISATION_HEADER_KEY, altenhofToken), "{\"Name\": \"Altenhof\",  \"Bio\": \"Welcome!\", \"Image\": \":)\"}");
+
+        requestBody = "{\"Name\": \"Altenhof\",  \"Bio\": \"Welcome!\", \"Image\": \":)\"}";
+        request = getHttpPutRequest("/users/altenhof", List.of("Content-Type", "application/json", AUTORISATION_HEADER_KEY, altenhofToken), requestBody);
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        printRequestAndResponseToConsole(request.toString(), request.headers().toString(), requestBody, response.body());
         assertThat(response.statusCode()).isEqualTo(200);
         assertThat(response.body()).isNotEmpty();
         responseObj = mapper.readTree(response.body());
@@ -119,16 +144,21 @@ public class UserIntegrationTest extends MonsterCardIntegrationTest {
         HttpRequest request;
         request = getHttpGetRequestSecurityToken("/users/kienboec", altenhofToken);
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        printRequestAndResponseToConsole(request.toString(), request.headers().toString(), "", response.body());
         assertThat(response.statusCode()).isEqualTo(400);
         assertThat(response.body()).isEqualTo("You can only edit your own profile.");
+
 
         request = getHttpGetRequestSecurityToken("/users/altenhof", kienboecToken);
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        printRequestAndResponseToConsole(request.toString(), request.headers().toString(), "", response.body());
         assertThat(response.statusCode()).isEqualTo(400);
         assertThat(response.body()).isEqualTo("You can only edit your own profile.");
 
+
         request = getHttpGetRequestSecurityToken("/users/someGuy", kienboecToken);
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        printRequestAndResponseToConsole(request.toString(), request.headers().toString(), "", response.body());
         assertThat(response.statusCode()).isEqualTo(400);
         assertThat(response.body()).isEqualTo("You can only edit your own profile.");
     }
@@ -138,19 +168,26 @@ public class UserIntegrationTest extends MonsterCardIntegrationTest {
         JsonNode jsonNode;
         HttpResponse<String> response;
         HttpRequest request;
+        List<String> fieldNames;
         request = getHttpGetRequestSecurityToken("/users/kienboec", kienboecToken);
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        printRequestAndResponseToConsole(request.toString(), request.headers().toString(), "", response.body());
         assertThat(response.statusCode()).isEqualTo(200);
         assertThat(response.body()).isNotEmpty();
         responseObj = mapper.readTree(response.body());
+        fieldNames = this.namesIteratorToList(responseObj.get("User").fieldNames());
+        assertThat(fieldNames.containsAll(USER_GET_USER_JSON_NAMES_LIST)).isTrue();
         jsonNode = responseObj.get("User").get("Username");
         assertThat(jsonNode.asText()).isEqualTo("kienboec");
 
         request = getHttpGetRequestSecurityToken("/users/altenhof", altenhofToken);
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        printRequestAndResponseToConsole(request.toString(), request.headers().toString(), "", response.body());
         assertThat(response.statusCode()).isEqualTo(200);
         assertThat(response.body()).isNotEmpty();
         responseObj = mapper.readTree(response.body());
+        fieldNames = this.namesIteratorToList(responseObj.get("User").fieldNames());
+        assertThat(fieldNames.containsAll(USER_GET_USER_JSON_NAMES_LIST)).isTrue();
         jsonNode = responseObj.get("User").get("Username");
         assertThat(jsonNode.asText()).isEqualTo("altenhof");
     }
@@ -158,14 +195,19 @@ public class UserIntegrationTest extends MonsterCardIntegrationTest {
     private void createExistingUsers() throws IOException, InterruptedException {
         HttpRequest request;
         HttpResponse<String> response;// create user kienboec - already exists
-        request = getHttpPostRequest("users", List.of("Content-Type", "application/json"), "{\"Username\":\"kienboec\", \"Password\":\"daniel\"}");
+        String requestBody;
+        requestBody = "{\"Username\":\"kienboec\", \"Password\":\"daniel\"}";
+        request = getHttpPostRequest("users", List.of("Content-Type", "application/json"), requestBody);
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        printRequestAndResponseToConsole(request.toString(), request.headers().toString(), requestBody, response.body());
         assertThat(response.statusCode()).isEqualTo(400);
         assertThat(response.body()).isEqualTo("Bad request");
 
         // create user altenhof - already exists
-        request = getHttpPostRequest("users", List.of("Content-Type", "application/json"), "{\"Username\":\"altenhof\", \"Password\":\"markus\"}");
+        requestBody = "{\"Username\":\"altenhof\", \"Password\":\"markus\"}";
+        request = getHttpPostRequest("users", List.of("Content-Type", "application/json"), requestBody);
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        printRequestAndResponseToConsole(request.toString(), request.headers().toString(), requestBody, response.body());
         assertThat(response.statusCode()).isEqualTo(400);
         assertThat(response.body()).isEqualTo("Bad request");
     }

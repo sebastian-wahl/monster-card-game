@@ -18,9 +18,9 @@ import java.util.UUID;
 
 public class TradeRepository extends RepositoryBase {
 
-    private static final String GET_ALL_TRADES_SQL = "SELECT * FROM trade WHERE (trade_finished = false OR trade_finished=?);";
+    private static final String GET_ALL_TRADES_SQL = "SELECT * FROM trade WHERE (trade_finished = false OR trade_finished=?) ORDER BY traded_at DESC;";
     private static final String GET_TRADES_FOR_USER_SQL = "SELECT * FROM trade WHERE trade_user = ? AND (trade_finished = false OR trade_finished=?);";
-    private static final String GET_TRADE_BY_ID_SQL = "SELECT * FROM trade WHERE id = ?;";
+    private static final String GET_TRADE_BY_ID_SQL = "SELECT * FROM trade WHERE id = ? ORDER BY traded_at DESC;";
 
     private static final String GET_TRADES_FOR_OTHER_THAN_USER_SQL = "SELECT * FROM trade WHERE trade_user != ? AND (trade_finished = false OR trade_finished=?);";
 

@@ -32,12 +32,12 @@ public class Server {
                 return;
             }
             this.repositoryHelper = new RepositoryHelper();
-            this.battleQueueHandler = new BattleQueueHandler(repositoryHelper);
+            this.battleQueueHandler = new BattleQueueHandler(new RepositoryHelper());
             while (listening) {
                 System.out.println("Listening on localhost:" + PORT);
                 Socket client = serverSocket.accept();
                 System.out.println("New Client Accepted, added to ThreadPool");
-                executorService.execute(new ClientGameRunner(client, battleQueueHandler, repositoryHelper));
+                executorService.execute(new ClientGameRunner(client, battleQueueHandler, new RepositoryHelper()));
             }
             executorService.shutdown();
         } catch (IOException e) {

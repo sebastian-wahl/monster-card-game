@@ -8,7 +8,8 @@ import game.objects.monstercards.DarkBat;
 
 public class SlownessSpell extends SpellCard {
     public SlownessSpell() {
-        super("Slowness Spell", 20, ElementType.NORMAL, CardsEnum.SLOWNESS_SPELL.getRarity());
+        super("Slowness Spell", 20, ElementType.NORMAL, CardsEnum.SLOWNESS_SPELL.getRarity(),
+                "Dark Bats are so fast that the Slowness Spell does not work on them");
     }
 
     @Override

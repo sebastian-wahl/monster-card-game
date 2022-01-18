@@ -7,12 +7,13 @@ import game.objects.enums.FightOutcome;
 
 public class FireElf extends MonsterCard {
     public FireElf() {
-        super("Fire Elf", 10, ElementType.FIRE, CardsEnum.FIRE_ELF.getRarity());
+        super("Fire Elf", 10, ElementType.FIRE, CardsEnum.FIRE_ELF.getRarity(),
+                "Fire elves have known dragons since they were little and can dodge their attacks.");
     }
 
     @Override
     /*
-     * The FireElves know Dragons since they were little and can evade their attacks.
+     * Fire elves have known dragons since they were little and can dodge their attacks.
      */
     public FightOutcome attack(CardBase competitor) {
         if (competitor instanceof Dragon) {

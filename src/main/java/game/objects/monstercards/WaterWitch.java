@@ -8,13 +8,15 @@ import game.objects.spellcards.SpellCard;
 
 public class WaterWitch extends MonsterCard {
     public WaterWitch() {
-        super("Water Witch", 15, ElementType.WATER, CardsEnum.WATER_WITCH.getRarity());
+        super("Water Witch", 15, ElementType.WATER, CardsEnum.WATER_WITCH.getRarity(),
+                "The water witch is immune against all spells. " +
+                        "Since the water witch knows which runes the fire wizard uses, she can dodge all of his attacks.");
     }
 
     @Override
     /*
-     * The Water Witch is immune against all spells.
-     * Since the Water Witch knows which runes the Fire Wizard uses, she can dodge all of his attacks.
+     * The water witch is immune against all spells.
+     * Since the water witch knows which runes the fire wizard uses, she can dodge all of his attacks.
      */
     public FightOutcome attack(CardBase competitor) {
         if (competitor instanceof SpellCard || competitor instanceof FireWizard) {

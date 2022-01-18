@@ -30,27 +30,9 @@ public class DeckController extends ControllerBase {
         Optional<User> userOpt = this.repositoryHelper.getUserRepository().checkTokenAndGetUser(userRequest.getAuthorizationToken());
         if (userOpt.isPresent()) {
             if (userRequest.getMethod() == HttpMethod.GET) {
-                Deck deck = this.repositoryHelper.getDeckRepository().getDeckByUsername(userOpt.get().getUsername());
-                if (this.hasFormatPlaneUrlParameter()) {
-                    response.setContent(deck.toPlainString());
-                } else {
-                    response.setContent(deck.toString());
-                }
-                response.setStatus(StatusCodeEnum.SC_200);
+                getDeck(response, userOpt);
             } else if (userRequest.getMethod() == HttpMethod.PUT) {
-                if (userRequest.getModel() instanceof DeckModel) {
-                    userOpt = this.repositoryHelper.getDeckRepository().setUserDeck(userOpt.get(), (DeckModel) userRequest.getModel());
-                    if (userOpt.isPresent()) {
-                        response.setStatus(StatusCodeEnum.SC_200);
-                        response.setContent(userOpt.get().getDeck().toString());
-                    } else {
-                        response.setStatus(StatusCodeEnum.SC_400);
-                        response.setContent(TOO_MANY_CARDS_FOR_DECK_ERROR_MESSAGE);
-                    }
-                } else {
-                    response.setStatus(StatusCodeEnum.SC_400);
-                    response.setContent(WRONG_BODY_MESSAGE);
-                }
+                setDeck(response, userOpt);
             } else {
                 response.setStatus(StatusCodeEnum.SC_400);
             }
@@ -59,6 +41,32 @@ public class DeckController extends ControllerBase {
             response.setContent(WRONG_SECURITY_TOKEN_ERROR_MESSAGE);
         }
         return response;
+    }
+
+    private void setDeck(Response response, Optional<User> userOpt) throws SQLException {
+        if (userRequest.getModel() instanceof DeckModel) {
+            userOpt = this.repositoryHelper.getDeckRepository().setUserDeck(userOpt.get(), (DeckModel) userRequest.getModel());
+            if (userOpt.isPresent()) {
+                response.setStatus(StatusCodeEnum.SC_200);
+                response.setContent(userOpt.get().getDeck().toString());
+            } else {
+                response.setStatus(StatusCodeEnum.SC_400);
+                response.setContent(TOO_MANY_CARDS_FOR_DECK_ERROR_MESSAGE);
+            }
+        } else {
+            response.setStatus(StatusCodeEnum.SC_400);
+            response.setContent(WRONG_BODY_MESSAGE);
+        }
+    }
+
+    private void getDeck(Response response, Optional<User> userOpt) throws SQLException {
+        Deck deck = this.repositoryHelper.getDeckRepository().getDeckByUsername(userOpt.get().getUsername());
+        if (this.hasFormatPlaneUrlParameter()) {
+            response.setContent(deck.toPlainString());
+        } else {
+            response.setContent(deck.toString());
+        }
+        response.setStatus(StatusCodeEnum.SC_200);
     }
 
     private boolean hasFormatPlaneUrlParameter() {

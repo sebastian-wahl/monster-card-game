@@ -8,7 +8,8 @@ import game.objects.enums.FightOutcome;
 public class GreyGoblin extends MonsterCard {
 
     public GreyGoblin() {
-        super("Grey Goblin", 14, ElementType.NORMAL, CardsEnum.GREY_GOBLIN.getRarity());
+        super("Grey Goblin", 14, ElementType.NORMAL, CardsEnum.GREY_GOBLIN.getRarity(),
+                "Goblins are too afraid of dragons to attack.");
     }
 
     @Override

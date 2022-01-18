@@ -4,10 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import game.http.HttpMethod;
-import game.http.exceptions.UnsupportedHttpMethod;
 import game.http.models.*;
 import game.http.url.ConcreteUrl;
 import game.http.url.Url;
+import game.objects.exceptions.http.UnsupportedHttpMethod;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -52,7 +52,7 @@ public class ConcreteRequest implements Request {
             this.setHttpModelBasedOnRoute();
         } catch (IOException ex) {
             System.out.println("Error when reading the input stream");
-            System.out.println(ex.getMessage());
+            ex.printStackTrace();
         }
     }
 

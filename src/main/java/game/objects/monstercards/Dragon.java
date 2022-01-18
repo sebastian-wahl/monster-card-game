@@ -7,13 +7,15 @@ import game.objects.enums.FightOutcome;
 
 public class Dragon extends MonsterCard {
     public Dragon() {
-        super("Dragon", 27, ElementType.FIRE, CardsEnum.DRAGON.getRarity());
+        super("Dragon", 27, ElementType.FIRE, CardsEnum.DRAGON.getRarity(),
+                "Goblins are too afraid of dragons to attack. " +
+                        "Fire elves have known dragons since they were little and can dodge their attacks.");
     }
 
     @Override
     /*
-     * Goblins are too afraid of Dragons to attack.
-     * The FireElves know Dragons since they were little and can evade their attacks.
+     * Goblins are too afraid of dragons to attack.
+     * Fire elves have known dragons since they were little and can dodge their attacks.
      */
     public FightOutcome attack(CardBase competitor) {
         if (competitor instanceof GreyGoblin) {

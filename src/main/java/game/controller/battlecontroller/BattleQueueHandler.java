@@ -49,26 +49,10 @@ public class BattleQueueHandler {
 
     protected void handleBattle(List<String> usernames) throws SQLException {
         Deck playerOneDeck = this.repositoryHelper.getDeckRepository().getDeckByUsername(usernames.get(0));
-        if (playerOneDeck.getDeckSize() == 0) {
-            Response response = new ConcreteResponse();
-            response.setContent("User: \"" + usernames.get(0) + "\" hasn't selected a deck yet! A battle cannot start if a user has not selected a deck!");
-            response.setStatus(StatusCodeEnum.SC_400);
-            for (String user : usernames) {
-                this.completableFutureMap.get(user).complete(response);
-            }
-            return;
-        }
+        if (getPlayerDeck(usernames, playerOneDeck, 0)) return;
 
         Deck playerTwoDeck = this.repositoryHelper.getDeckRepository().getDeckByUsername(usernames.get(1));
-        if (playerTwoDeck.getDeckSize() == 0) {
-            Response response = new ConcreteResponse();
-            response.setContent("User: \"" + usernames.get(1) + "\" hasn't selected a deck yet! A battle cannot start if a user has not selected a deck!");
-            response.setStatus(StatusCodeEnum.SC_400);
-            for (String user : usernames) {
-                this.completableFutureMap.get(user).complete(response);
-            }
-            return;
-        }
+        if (getPlayerDeck(usernames, playerTwoDeck, 1)) return;
         BattleReportHelper rh = new BattleReportHelper();
 
         int counter = 0;
@@ -100,6 +84,10 @@ public class BattleQueueHandler {
             rh.setFightOutcome(FightOutcome.TIE);
         }
 
+        updateUsersAndCompleteFutures(usernames, rh);
+    }
+
+    private void updateUsersAndCompleteFutures(List<String> usernames, BattleReportHelper rh) throws SQLException {
         // Get updated users
         Optional<User> userOpt1 = this.repositoryHelper.getUserRepository().getUser(usernames.get(0));
         Optional<User> userOpt2 = this.repositoryHelper.getUserRepository().getUser(usernames.get(1));
@@ -120,19 +108,24 @@ public class BattleQueueHandler {
         }
     }
 
-    private void updateScore(String winningPlayer, String losingPlayer) throws SQLException {
-        if (this.repositoryHelper.getUserRepository().updateEloAndGamesPlayed(winningPlayer, losingPlayer)) {
-            System.out.println("Score updated");
-        } else {
-            System.out.println("Error when updating");
+    private boolean getPlayerDeck(List<String> usernames, Deck playerOneDeck, int userIndex) {
+        if (playerOneDeck.getDeckSize() == 0) {
+            Response response = new ConcreteResponse();
+            response.setContent("User: \"" + usernames.get(userIndex) + "\" hasn't selected a deck yet! A battle cannot start if a user has not selected a deck!");
+            response.setStatus(StatusCodeEnum.SC_400);
+            for (String user : usernames) {
+                this.completableFutureMap.get(user).complete(response);
+            }
+            return true;
         }
+        return false;
+    }
+
+    private void updateScore(String winningPlayer, String losingPlayer) throws SQLException {
+        this.repositoryHelper.getUserRepository().updateEloAndGamesPlayed(winningPlayer, losingPlayer);
     }
 
     private void updateScoreTie(List<String> players) throws SQLException {
-        if (this.repositoryHelper.getUserRepository().updateTieAndGamesPlayed(players)) {
-            System.out.println("Tie: Score updated");
-        } else {
-            System.out.println("Tie: Error when updating");
-        }
+        this.repositoryHelper.getUserRepository().updateTieAndGamesPlayed(players);
     }
 }

@@ -57,19 +57,18 @@ public class AddAndEditUserController extends ControllerBase {
                     response.setStatus(SC_200);
                     response.setContent(userOpt.get().toString());
                 }
-            } else if (this.userRequest.getMethod() == HttpMethod.PUT) {
-                if (this.userRequest.getModel() instanceof UserModel) {
-                    UserModel newUserModel = (UserModel) this.userRequest.getModel();
-                    User newUser = User.builder().username(username)
-                            .displayName(newUserModel.getDisplayName())
-                            .bio(newUserModel.getBio())
-                            .image(newUserModel.getImage())
-                            .build();
-                    Optional<User> userOpt = this.repositoryHelper.getUserRepository().update(newUser);
-                    if (userOpt.isPresent()) {
-                        response.setStatus(SC_200);
-                        response.setContent(userOpt.get().toString());
-                    }
+            } else if (this.userRequest.getMethod() == HttpMethod.PUT &&
+                    this.userRequest.getModel() instanceof UserModel) {
+                UserModel newUserModel = (UserModel) this.userRequest.getModel();
+                User newUser = User.builder().username(username)
+                        .displayName(newUserModel.getDisplayName())
+                        .bio(newUserModel.getBio())
+                        .image(newUserModel.getImage())
+                        .build();
+                Optional<User> userOpt = this.repositoryHelper.getUserRepository().update(newUser);
+                if (userOpt.isPresent()) {
+                    response.setStatus(SC_200);
+                    response.setContent(userOpt.get().toString());
                 }
             }
         }
@@ -81,7 +80,6 @@ public class AddAndEditUserController extends ControllerBase {
             if (this.userRequest.getModel() instanceof UserModel) {
                 UserModel userModel = (UserModel) this.userRequest.getModel();
                 if (this.addUser(userModel)) {
-                    System.out.println("User added successfully");
                     // username is present since addUser() returned true
                     response.setContent("User with Username \"" + userModel.getUsername() + "\" was added.");
                     response.setStatus(SC_201);
@@ -89,7 +87,6 @@ public class AddAndEditUserController extends ControllerBase {
                     // no exception so username should be present
                     response.setContent("User \"" + userModel.getUsername() + "\" already exists!");
                     response.setStatus(SC_400);
-                    System.out.println("User not added");
                 }
             } else {
                 response.setStatus(StatusCodeEnum.SC_400);

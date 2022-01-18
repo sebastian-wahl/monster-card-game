@@ -8,7 +8,8 @@ import game.objects.spellcards.SpellCard;
 
 public class Kraken extends MonsterCard {
     public Kraken() {
-        super("Kraken", 23, ElementType.WATER, CardsEnum.KRAKEN.getRarity());
+        super("Kraken", 23, ElementType.WATER, CardsEnum.KRAKEN.getRarity(),
+                "The kraken is immune against spells.");
     }
 
     @Override

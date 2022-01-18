@@ -7,7 +7,8 @@ import game.objects.enums.FightOutcome;
 
 public class FireWizard extends MonsterCard {
     public FireWizard() {
-        super("Fire Wizard", 22, ElementType.FIRE, CardsEnum.FIRE_WIZARD.getRarity());
+        super("Fire Wizard", 22, ElementType.FIRE, CardsEnum.FIRE_WIZARD.getRarity(),
+                "Wizard can control orcs, so they are not able to damage them.");
     }
 
     @Override

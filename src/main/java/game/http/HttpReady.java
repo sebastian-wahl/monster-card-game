@@ -8,7 +8,7 @@ public enum HttpReady {
     CONTENT_TYPE_APPLICATION_JSON("application/json"),
     CONTENT_TYPE_TEXT_PLAIN("text/plain");
 
-    private String text;
+    private final String text;
 
     HttpReady(String text) {
         this.text = text;

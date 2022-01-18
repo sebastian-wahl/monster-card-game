@@ -8,12 +8,13 @@ import game.objects.spellcards.SlownessSpell;
 
 public class DarkBat extends MonsterCard {
     public DarkBat() {
-        super("Dark Bat", 10, ElementType.NORMAL, CardsEnum.DARK_BAT.getRarity());
+        super("Dark Bat", 10, ElementType.NORMAL, CardsEnum.DARK_BAT.getRarity(),
+                "Dark bats are so fast that the slowness spell does not work on them");
     }
 
     @Override
     /*
-     * Dark Bats are so fast that the Slowness Spell does not work on them
+     * Dark bats are so fast that the slowness spell does not work on them
      */
     public FightOutcome attack(CardBase competitor) {
         if (competitor instanceof SlownessSpell) {

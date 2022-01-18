@@ -11,6 +11,10 @@ public abstract class MonsterCard extends CardBase {
         super(name, damage, elementType, cardRarity);
     }
 
+    protected MonsterCard(String name, double damage, ElementType elementType, RarityEnum cardRarity, String desc) {
+        super(name, damage, elementType, cardRarity, desc);
+    }
+
     @Override
     public FightOutcome attack(CardBase competitor) {
         if (competitor instanceof MonsterCard) {

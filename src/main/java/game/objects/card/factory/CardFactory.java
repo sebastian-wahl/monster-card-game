@@ -17,6 +17,44 @@ public class CardFactory {
     public static CardBase createCard(CardsEnum toCreate, String id) {
         CardBase toReturn = null;
         // Monstercards
+        toReturn = createMonstercard(toCreate);
+        // Spellcards
+        if (toReturn == null) {
+            toReturn = createSpellcard(toCreate);
+        }
+        if (toReturn != null) {
+            if (id != null) {
+                toReturn.setId(id);
+            }
+            return toReturn;
+        } else {
+            // Exception does not need to be checked since this should only happen when a card was forgotten to add to this list
+            throw new CardNotFoundException(toCreate);
+        }
+    }
+
+    private static CardBase createSpellcard(CardsEnum toCreate) {
+        CardBase toReturn = null;
+        if (toCreate == CardsEnum.DARK_SPELL) {
+            toReturn = new DarkSpell();
+        }
+        if (toCreate == CardsEnum.FIRE_SPELL) {
+            toReturn = new FireSpell();
+        }
+        if (toCreate == CardsEnum.WATER_SPELL) {
+            toReturn = new WaterSpell();
+        }
+        if (toCreate == CardsEnum.SPEED_SPELL) {
+            toReturn = new SpeedSpell();
+        }
+        if (toCreate == CardsEnum.SLOWNESS_SPELL) {
+            toReturn = new SlownessSpell();
+        }
+        return toReturn;
+    }
+
+    private static CardBase createMonstercard(CardsEnum toCreate) {
+        CardBase toReturn = null;
         if (toCreate == CardsEnum.DRAGON) {
             toReturn = new Dragon();
         }
@@ -47,31 +85,7 @@ public class CardFactory {
         if (toCreate == CardsEnum.WATER_WITCH) {
             toReturn = new WaterWitch();
         }
-        // Spellcards
-        if (toCreate == CardsEnum.DARK_SPELL) {
-            toReturn = new DarkSpell();
-        }
-        if (toCreate == CardsEnum.FIRE_SPELL) {
-            toReturn = new FireSpell();
-        }
-        if (toCreate == CardsEnum.WATER_SPELL) {
-            toReturn = new WaterSpell();
-        }
-        if (toCreate == CardsEnum.SPEED_SPELL) {
-            toReturn = new SpeedSpell();
-        }
-        if (toCreate == CardsEnum.SLOWNESS_SPELL) {
-            toReturn = new SlownessSpell();
-        }
-        if (toReturn != null) {
-            if (id != null) {
-                toReturn.setId(id);
-            }
-            return toReturn;
-        } else {
-            // Exception does not need to be checked since this should only happen when a card was forgotten to add to this list
-            throw new CardNotFoundException(toCreate);
-        }
+        return toReturn;
     }
 
 }

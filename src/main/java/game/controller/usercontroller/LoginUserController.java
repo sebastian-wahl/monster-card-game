@@ -35,11 +35,9 @@ public class LoginUserController extends ControllerBase {
                     // username is present, since this is checked in the login method
                     Optional<String> securityTokenOpt = this.repositoryHelper.getUserRepository().generateSecurityToken(userModel.getUsername());
                     if (securityTokenOpt.isPresent()) {
-                        System.out.println("Login successful");
                         response.setStatus(SC_200);
 
                         String securityToken = securityTokenOpt.get();
-                        System.out.println("Security token: " + securityToken);
                         // validity period
                         Timestamp timestamp = Timestamp.from(Instant.now());
                         Timestamp validUntil = Timestamp.valueOf(timestamp.toLocalDateTime().plusSeconds(TOKEN_VALID_PERIOD_SECONDS));
@@ -48,7 +46,6 @@ public class LoginUserController extends ControllerBase {
                         response.setStatus(SC_500);
                     }
                 } else {
-                    System.out.println("Login failed");
                     response.setStatus(SC_401);
                     response.setContent("Login failed. Please check username and password.");
                 }

@@ -12,6 +12,10 @@ public abstract class SpellCard extends CardBase {
         super(name, damage, elementType, cardRarity);
     }
 
+    protected SpellCard(String name, int damage, ElementType elementType, RarityEnum cardRarity, String desc) {
+        super(name, damage, elementType, cardRarity, desc);
+    }
+
     @Override
     public FightOutcome attack(CardBase competitor) {
         if (competitor instanceof Kraken || competitor instanceof WaterWitch) {

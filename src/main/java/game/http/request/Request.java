@@ -19,13 +19,13 @@ public interface Request {
     HttpModel getModel();
 
     /**
-     * @return Returns a URL object of the request. Never returns null.
+     * @return Returns a URL object of the request
      */
     Url getUrl();
 
     /**
-     * @return Returns the request header. Never returns null. All keys must be
-     * lower case.
+     * @return Returns the request header. All keys must be
+     * lowercase.
      */
     Map<String, String> getHeaders();
 
@@ -35,8 +35,7 @@ public interface Request {
     String getAuthorizationToken();
 
     /**
-     * @return Returns the parsed content length request header. Never returns
-     * null.
+     * @return Returns the parsed content length request header.
      */
     int getContentLength();
 

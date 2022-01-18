@@ -17,6 +17,7 @@ public abstract class CardBase implements Comparable<CardBase> {
     private UUID id;
 
     private String name;
+    private String desc;
     private final double damage;
     private ElementType elementType;
 
@@ -26,11 +27,16 @@ public abstract class CardBase implements Comparable<CardBase> {
     public final RarityEnum cardRarity;
 
     public CardBase(String name, double damage, ElementType elementType, RarityEnum cardRarity) {
+        this(name, damage, elementType, cardRarity, "No description available");
+    }
+
+    public CardBase(String name, double damage, ElementType elementType, RarityEnum cardRarity, String desc) {
         this.id = UUID.randomUUID();
         this.name = name;
         this.damage = damage;
         this.elementType = elementType;
         this.cardRarity = cardRarity;
+        this.desc = desc;
     }
 
     public abstract FightOutcome attack(CardBase competitor);
@@ -100,6 +106,6 @@ public abstract class CardBase implements Comparable<CardBase> {
 
     @Override
     public String toString() {
-        return "{\"Card\": {\"Id\": \"" + this.id.toString() + "\", \"Name\": \"" + this.name + "\", \"Damage\": " + this.damage + ", \"Elementtype\": \"" + this.elementType.toString() + "\", \"Rarity\": \"" + this.cardRarity.toString() + "\"} }";
+        return "{\"Card\": {\"Id\": \"" + this.id.toString() + "\", \"Name\": \"" + this.name + "\", \"Damage\": " + this.damage + ", \"Elementtype\": \"" + this.elementType.toString() + "\", \"Description\": \"" + this.desc + "\", \"Rarity\": \"" + this.cardRarity.toString() + "\"} }";
     }
 }

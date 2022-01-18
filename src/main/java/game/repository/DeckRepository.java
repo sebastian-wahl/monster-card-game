@@ -69,8 +69,7 @@ public class DeckRepository extends RepositoryBase {
                 statement.setString(i + 1, user.getUsername());
                 i += 2;
             }
-            int updates = statement.executeUpdate();
-            System.out.println(updates + " row(s) updated");
+            statement.executeUpdate();
 
             user.setDeck(this.getDeckByUsername(user.getUsername()));
             return Optional.of(user);

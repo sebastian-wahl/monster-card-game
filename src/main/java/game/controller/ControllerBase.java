@@ -41,7 +41,7 @@ public abstract class ControllerBase {
             // rollback
             if (connection != null) {
                 try {
-                    System.out.println("Rollback!");
+                    System.out.println("---- Rollback! ----");
                     connection.rollback();
                     connection.close();
                 } catch (SQLException e) {

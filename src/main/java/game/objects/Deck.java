@@ -4,7 +4,7 @@ import java.util.*;
 
 public class Deck {
 
-    private List<CardBase> deck;
+    private List<CardBase> deckList;
 
     // Deck init size = max 4 cards
     public static final int INIT_MAX_DECK_SIZE = 4;
@@ -19,35 +19,35 @@ public class Deck {
 
     public void setDeck(List<CardBase> cards) {
         if (cards.size() > INIT_MAX_DECK_SIZE) {
-            deck = new ArrayList<>(cards.subList(0, 4));
+            deckList = new ArrayList<>(cards.subList(0, 4));
         } else {
-            deck = cards;
+            deckList = cards;
         }
     }
 
     public CardBase getRandomCard() {
         Random rand = new Random();
-        return deck.get(rand.nextInt(deck.size()));
+        return deckList.get(rand.nextInt(deckList.size()));
     }
 
     public void removeCard(CardBase card) {
-        this.deck.remove(card);
+        this.deckList.remove(card);
     }
 
     public void addCard(CardBase card) {
-        this.deck.add(card);
+        this.deckList.add(card);
     }
 
     public int getDeckSize() {
-        return this.deck.size();
+        return this.deckList.size();
     }
 
     public boolean isDeckEmpty() {
-        return this.deck.isEmpty();
+        return this.deckList.isEmpty();
     }
 
     public List<CardBase> getCards() {
-        return this.deck;
+        return this.deckList;
     }
 
     @Override
@@ -55,28 +55,28 @@ public class Deck {
         if (this == o) return true;
         if (!(o instanceof Deck)) return false;
         Deck deck1 = (Deck) o;
-        return Objects.equals(deck, deck1.deck);
+        return Objects.equals(deckList, deck1.deckList);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(deck);
+        return Objects.hash(deckList);
     }
 
     public String toPlainString() {
         StringBuilder sb = new StringBuilder();
 
         sb.append("{");
-        if (!this.deck.isEmpty()) {
+        if (!this.deckList.isEmpty()) {
             sb.append("\"Deck\": ");
-            sb.append(this.deck.size() > 1 ? "[" : "");
-            for (int i = 0; i < this.deck.size(); i++) {
-                sb.append(this.deck.get(i).toPlainString());
-                if (i < this.deck.size() - 1) {
+            sb.append(this.deckList.size() > 1 ? "[" : "");
+            for (int i = 0; i < this.deckList.size(); i++) {
+                sb.append(this.deckList.get(i).toPlainString());
+                if (i < this.deckList.size() - 1) {
                     sb.append(", ");
                 }
             }
-            sb.append(this.deck.size() > 1 ? "]" : "");
+            sb.append(this.deckList.size() > 1 ? "]" : "");
         } else {
             sb.append("\"Deck\": \"Empty\"");
         }
@@ -90,16 +90,16 @@ public class Deck {
         StringBuilder sb = new StringBuilder();
 
         sb.append("{");
-        if (!this.deck.isEmpty()) {
+        if (!this.deckList.isEmpty()) {
             sb.append("\"Deck\": ");
-            sb.append(this.deck.size() > 1 ? "[" : "");
-            for (int i = 0; i < this.deck.size(); i++) {
-                sb.append(this.deck.get(i).toString());
-                if (i < this.deck.size() - 1) {
+            sb.append(this.deckList.size() > 1 ? "[" : "");
+            for (int i = 0; i < this.deckList.size(); i++) {
+                sb.append(this.deckList.get(i).toString());
+                if (i < this.deckList.size() - 1) {
                     sb.append(", ");
                 }
             }
-            sb.append(this.deck.size() > 1 ? "]" : "");
+            sb.append(this.deckList.size() > 1 ? "]" : "");
         } else {
             sb.append("\"Deck\": \"Empty\"");
         }

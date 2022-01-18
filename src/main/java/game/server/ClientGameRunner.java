@@ -35,6 +35,8 @@ public class ClientGameRunner implements Runnable {
             response.send(clientSocket.getOutputStream());
             clientSocket.close();
         } catch (IOException e) {
+            System.out.println("Client Socket error:");
+            e.printStackTrace();
         }
 
     }

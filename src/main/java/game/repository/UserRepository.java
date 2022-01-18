@@ -180,19 +180,6 @@ public class UserRepository extends RepositoryBase {
         return Math.round(1000 * 1.0 / (1.0 + Math.pow(10, (eloB - eloA) / 400.0))) / 1000.0;
     }
 
-
-    public boolean loginToken(String token) {
-        Optional<String> username = this.checkToken(token);
-        if (username.isPresent()) {
-            System.out.println("Token for User: \"" + username.get() + "\" is valid");
-            return true;
-        } else {
-            System.out.println("Token is invalid");
-            return false;
-        }
-    }
-
-
     public boolean login(UserModel userModel) throws SQLException {
         return this.loginAndGetUser(userModel.getUsername(), userModel.getPassword()).isPresent();
     }

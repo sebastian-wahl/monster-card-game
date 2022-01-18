@@ -8,7 +8,8 @@ import game.objects.monstercards.Knight;
 
 public class WaterSpell extends SpellCard {
     public WaterSpell() {
-        super("Water Spell", 25, ElementType.WATER, CardsEnum.WATER_SPELL.getRarity());
+        super("Water Spell", 25, ElementType.WATER, CardsEnum.WATER_SPELL.getRarity(),
+                "The armor of a knight is so heavy that water spells make them drown them instantly.");
     }
 
     @Override

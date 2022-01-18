@@ -5,6 +5,7 @@ import game.http.HttpMethod;
 import game.http.models.DeckModel;
 import game.http.request.Request;
 import game.http.response.Response;
+import game.http.url.ConcreteUrl;
 import game.objects.CardBase;
 import game.objects.Deck;
 import game.objects.User;
@@ -76,6 +77,7 @@ class DeckControllerTest {
             lenient().when(this.repositoryHelper.getUserRepository()).thenReturn(this.userRepository);
             lenient().when(this.repositoryHelper.getDeckRepository()).thenReturn(this.deckRepository);
             lenient().when(this.userRequest.getAuthorizationToken()).thenReturn(SECURITY_TOKEN);
+            lenient().when(this.userRequest.getUrl()).thenReturn(new ConcreteUrl("deck"));
             lenient().when(this.repositoryHelper.getUserRepository().checkTokenAndGetUser(SECURITY_TOKEN)).thenReturn(Optional.of(user1));
             lenient().when(this.deckRepository.getDeckByUsername(USERNAME_1)).thenReturn(this.deckSet);
             this.deckController = new DeckController(userRequest, repositoryHelper);

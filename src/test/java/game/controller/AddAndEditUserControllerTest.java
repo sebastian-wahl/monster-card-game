@@ -5,6 +5,7 @@ import game.helper.RepositoryHelper;
 import game.http.models.UserModel;
 import game.http.request.Request;
 import game.http.response.Response;
+import game.http.url.ConcreteUrl;
 import game.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,6 +49,7 @@ class AddAndEditUserControllerTest {
     @BeforeEach
     void setUp() {
         lenient().when(this.repositoryHelper.getUserRepository()).thenReturn(this.userRepository);
+        lenient().when(this.userRequest.getUrl()).thenReturn(new ConcreteUrl("deck"));
         this.userController = new AddAndEditUserController(userRequest, repositoryHelper);
     }
 

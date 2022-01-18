@@ -54,7 +54,7 @@ public class TradeIntegrationTest extends MonsterCardIntegrationTest {
         String requestBody;
         JsonNode responseObj;
         // create trade
-        requestBody = "{\"CardToTrade\": \"f4bc8718-0cfa-4156-b2f6-598e634a5b61\", \"DesiredCardName\": \"ork\", \"DesiredCoins\": 2}";
+        requestBody = "{\"CardToTrade\": \"f4bc8718-0cfa-4156-b2f6-598e634a5b61\", \"DesiredCardName\": \"orc\", \"DesiredCoins\": 2}";
         request = getHttpPostRequest("tradings", List.of("Content-Type", "application/json", "Authorization", kienboecToken),
                 requestBody);
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
@@ -88,7 +88,7 @@ public class TradeIntegrationTest extends MonsterCardIntegrationTest {
         HttpRequest request;
         String tradeId;
         // create trade
-        requestBody = "{\"CardToTrade\": \"f4bc8718-0cfa-4156-b2f6-598e634a5b61\", \"DesiredCardName\": \"ork\", \"DesiredCoins\": 2}";
+        requestBody = "{\"CardToTrade\": \"f4bc8718-0cfa-4156-b2f6-598e634a5b61\", \"DesiredCardName\": \"orc\", \"DesiredCoins\": 2}";
         request = getHttpPostRequest("tradings", List.of("Content-Type", "application/json", "Authorization", altenhofToken),
                 requestBody);
         response = client.send(request, HttpResponse.BodyHandlers.ofString());
@@ -130,7 +130,7 @@ public class TradeIntegrationTest extends MonsterCardIntegrationTest {
         assertThat(fieldNames.containsAll(TRADE_TRADE_FINISHED_JSON_NAMES_LIST)).isTrue();
 
         // create trade
-        requestBody = "{\"CardToTrade\": \"f4bc8718-0cfa-4156-b2f6-598e634a5b61\", \"DesiredCardName\": \"ork\", \"DesiredCoins\": 2}";
+        requestBody = "{\"CardToTrade\": \"f4bc8718-0cfa-4156-b2f6-598e634a5b61\", \"DesiredCardName\": \"orc\", \"DesiredCoins\": 2}";
         request = getHttpPostRequest("tradings", List.of("Content-Type", "application/json", "Authorization", kienboecToken),
                 requestBody);
         response = client.send(request, HttpResponse.BodyHandlers.ofString());

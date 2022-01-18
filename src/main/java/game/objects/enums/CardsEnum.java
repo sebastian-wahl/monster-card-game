@@ -18,7 +18,7 @@ public enum CardsEnum {
     GREY_GOBLIN(RarityEnum.COMMON, "Grey Goblin"),
     KNIGHT(RarityEnum.SLIGHTLY_RARE, "Knight"),
     KRAKEN(RarityEnum.MODERATELY_RARE, "Kraken"),
-    ORK(RarityEnum.COMMON, "Ork"),
+    ORC(RarityEnum.COMMON, "Orc"),
     DARK_BAT(RarityEnum.COMMON, "Dark Bat"),
     DARK_ENT(RarityEnum.COMMON, "Dark Ent"),
     WATER_WITCH(RarityEnum.VERY_RARE, "Water Witch"),

@@ -21,7 +21,7 @@ class CardBaseTest {
     private static Stream<Arguments> provideMonstersMonsterFight() {
         return Stream.of(
                 Arguments.of(new DarkEnt(), new DarkBat()),
-                Arguments.of(new Dragon(), new Ork()),
+                Arguments.of(new Dragon(), new Orc()),
                 Arguments.of(new Knight(), new FireElf()),
                 Arguments.of(new Dragon(), new WaterWitch())
         );
@@ -80,11 +80,11 @@ class CardBaseTest {
     private static Stream<Arguments> provideMonstersForSpecifications() {
         return Stream.of(
                 Arguments.of(new DarkBat(), new SlownessSpell()),
-                Arguments.of(new DarkEnt(), new Ork()),
+                Arguments.of(new DarkEnt(), new Orc()),
                 Arguments.of(new DarkEnt(), new Knight()),
                 Arguments.of(new Dragon(), new GreyGoblin()),
                 Arguments.of(new FireElf(), new Dragon()),
-                Arguments.of(new FireWizard(), new Ork()),
+                Arguments.of(new FireWizard(), new Orc()),
                 Arguments.of(new Kraken(), new WaterSpell()),
                 Arguments.of(new Kraken(), new FireSpell()),
                 Arguments.of(new WaterWitch(), new FireWizard()),

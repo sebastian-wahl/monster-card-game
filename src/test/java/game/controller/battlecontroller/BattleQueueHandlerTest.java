@@ -50,7 +50,7 @@ class BattleQueueHandlerTest {
     private Deck user1Deck = new Deck(Arrays.asList(
             new DarkBat(),
             new FireElf(),
-            new Ork(),
+            new Orc(),
             new GreyGoblin(),
             new Knight()
     ));

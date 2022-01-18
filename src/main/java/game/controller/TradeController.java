@@ -12,6 +12,7 @@ import game.objects.CardBase;
 import game.objects.Trade;
 import game.objects.User;
 import game.objects.enums.CardsEnum;
+import game.objects.exceptions.controllers.WrongDesiredCardExpetion;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -49,45 +50,25 @@ public class TradeController extends ControllerBase {
         Optional<User> userOpt = this.repositoryHelper.getUserRepository().checkTokenAndGetUser(userRequest.getAuthorizationToken());
         if (userOpt.isPresent()) {
             if (userRequest.getMethod() == HttpMethod.GET) {
-                List<Trade> trades;
-                boolean openOnly = this.hasOpenOnlyTradingDealsParam();
-                if (this.hasOwnTradingDealsParam()) {
-                    // get own trading deals
-                    trades = this.repositoryHelper.getTradeRepository().getAllTradesForUser(userOpt.get(), openOnly);
-                } else if (this.hasOtherTradingDealsParam()) {
-                    // get deals from all others
-                    trades = this.repositoryHelper.getTradeRepository().getOtherTradesExceptUserTrades(userOpt.get(), openOnly);
-                } else if (this.hasSpecificUserTradingDealsParam()) {
-                    // get deals from specific user
-                    String usernameForDeals = this.userRequest.getUrl().getUrlParameters().get(SPECIFIC_USER_TRADE_PARAM);
-                    trades = this.repositoryHelper.getTradeRepository().getAllTradesForUser(User.builder().username(usernameForDeals).build(), openOnly);
-                } else {
-                    // get all trading deals
-                    trades = this.repositoryHelper.getTradeRepository().getAllTrades(openOnly);
-                }
+                List<Trade> trades = getTrades(userOpt);
                 response.setStatus(StatusCodeEnum.SC_200);
                 setResponseContent(response, trades);
             } else if (userRequest.getMethod() == HttpMethod.POST) {
                 // add trade or finish trade
                 switch (this.userRequest.getUrl().getUrlSegments().size()) {
-                    case 1 -> addTrade(response, userOpt.get());
+                    case 1 -> {
+                        try {
+                            addTrade(response, userOpt.get());
+                        } catch (WrongDesiredCardExpetion e) {
+                            response.setStatus(StatusCodeEnum.SC_400);
+                            response.setContent(e.getMessage());
+                        }
+                    }
                     case 2 -> finishTrade(response, userOpt.get());
                 }
             } else if (userRequest.getMethod() == HttpMethod.DELETE) {
                 // delete trading deal
-                if (this.userRequest.getUrl().getUrlSegments().size() == 2) {
-                    String tradeId = this.userRequest.getUrl().getUrlSegments().get(1);
-                    Optional<Trade> tradeOpt = this.repositoryHelper.getTradeRepository().getTradeById(tradeId);
-                    if (tradeOpt.isPresent() && tradeOpt.get().getTradeUser().getUsername().equals(userOpt.get().getUsername())) {
-                        this.repositoryHelper.getTradeRepository().removeTrade(Trade.builder().id(UUID.fromString(tradeId)).tradeUser(userOpt.get()).build());
-                        this.repositoryHelper.getCardRepository().markCardForTrading(tradeOpt.get().getTradeCard().getId().toString(), false);
-                        response.setStatus(StatusCodeEnum.SC_200);
-                        response.setContent(TRADE_REMOVED_SUCCESSFULLY);
-                    } else {
-                        response.setStatus(StatusCodeEnum.SC_400);
-                        response.setContent(ONLY_OWN_TRADES_MESSAGE);
-                    }
-                }
+                deleteTrade(response, userOpt);
             } else {
                 response.setStatus(StatusCodeEnum.SC_400);
             }
@@ -97,6 +78,42 @@ public class TradeController extends ControllerBase {
         }
 
         return response;
+    }
+
+    private List<Trade> getTrades(Optional<User> userOpt) throws SQLException {
+        List<Trade> trades;
+        boolean openOnly = this.hasOpenOnlyTradingDealsParam();
+        if (this.hasOwnTradingDealsParam()) {
+            // get own trading deals
+            trades = this.repositoryHelper.getTradeRepository().getAllTradesForUser(userOpt.get(), openOnly);
+        } else if (this.hasOtherTradingDealsParam()) {
+            // get deals from all others
+            trades = this.repositoryHelper.getTradeRepository().getOtherTradesExceptUserTrades(userOpt.get(), openOnly);
+        } else if (this.hasSpecificUserTradingDealsParam()) {
+            // get deals from specific user
+            String usernameForDeals = this.userRequest.getUrl().getUrlParameters().get(SPECIFIC_USER_TRADE_PARAM);
+            trades = this.repositoryHelper.getTradeRepository().getAllTradesForUser(User.builder().username(usernameForDeals).build(), openOnly);
+        } else {
+            // get all trading deals
+            trades = this.repositoryHelper.getTradeRepository().getAllTrades(openOnly);
+        }
+        return trades;
+    }
+
+    private void deleteTrade(Response response, Optional<User> userOpt) throws SQLException {
+        if (this.userRequest.getUrl().getUrlSegments().size() == 2) {
+            String tradeId = this.userRequest.getUrl().getUrlSegments().get(1);
+            Optional<Trade> tradeOpt = this.repositoryHelper.getTradeRepository().getTradeById(tradeId);
+            if (tradeOpt.isPresent() && tradeOpt.get().getTradeUser().getUsername().equals(userOpt.get().getUsername())) {
+                this.repositoryHelper.getTradeRepository().removeTrade(Trade.builder().id(UUID.fromString(tradeId)).tradeUser(userOpt.get()).build());
+                this.repositoryHelper.getCardRepository().markCardForTrading(tradeOpt.get().getTradeCard().getId().toString(), false);
+                response.setStatus(StatusCodeEnum.SC_200);
+                response.setContent(TRADE_REMOVED_SUCCESSFULLY);
+            } else {
+                response.setStatus(StatusCodeEnum.SC_400);
+                response.setContent(ONLY_OWN_TRADES_MESSAGE);
+            }
+        }
     }
 
     private void finishTrade(Response response, User user) throws SQLException {
@@ -113,32 +130,10 @@ public class TradeController extends ControllerBase {
                     response.setContent(SELF_TRADE_ERROR_MESSAGE);
                 } else {
                     if (user.getCoins() - toFinishTrade.getDesiredCoins() >= 0) {
-                        Optional<CardBase> toTradeCardOpt = this.repositoryHelper.getCardRepository().getCardById(tradeCardId);
-                        if (toTradeCardOpt.isPresent() &&
-                                !toTradeCardOpt.get().isInTradeInvolved() &&
-                                toTradeCardOpt.get().getName().equals(toFinishTrade.getDesiredCard().getName()) &&
-                                !this.repositoryHelper.getDeckRepository().isCardInUserDeck(user.getUsername(), tradeCardId)) {
-
-                            Optional<Trade> tradeOpt = this.repositoryHelper.getTradeRepository().finishTrade(toFinishTrade, user, tradeCardId);
-                            if (tradeOpt.isPresent()) {
-                                Trade finishedTrade = tradeOpt.get();
-                                // reset card
-                                this.repositoryHelper.getCardRepository().markCardForTrading(finishedTrade.getTradeCard().getId().toString(), false);
-                                // remove cards from trade from user stack
-                                this.repositoryHelper.getStackRepository().removeCardsFromUserStack(finishedTrade.getTradeUser(), List.of(finishedTrade.getTradeCard()));
-                                this.repositoryHelper.getStackRepository().removeCardsFromUserStack(finishedTrade.getTradedToUser(), List.of(finishedTrade.getTradedForCard()));
-                                // add new traded cards to user stack
-                                this.repositoryHelper.getStackRepository().addCardsToUserStack(finishedTrade.getTradeUser(), List.of(finishedTrade.getTradedForCard()));
-                                this.repositoryHelper.getStackRepository().addCardsToUserStack(finishedTrade.getTradedToUser(), List.of(finishedTrade.getTradeCard()));
-
-                                // get users
-                                getUserForTradeFromDB(finishedTrade);
-                                response.setStatus(StatusCodeEnum.SC_200);
-                                response.setContent(finishedTrade.toString());
-                            }
+                        if (toFinishTrade.getDesiredCard() == null) {
+                            tradeOnlyCoins(response, user, toFinishTrade);
                         } else {
-                            response.setStatus(StatusCodeEnum.SC_400);
-                            response.setContent(CARD_NOT_SUITABLE_ERROR_MESSAGE);
+                            tradeNormalWithCoins(response, user, tradeCardId, toFinishTrade);
                         }
                     } else {
                         response.setStatus(StatusCodeEnum.SC_400);
@@ -152,19 +147,94 @@ public class TradeController extends ControllerBase {
         }
     }
 
-    private void addTrade(Response response, User user) throws SQLException {
+    private void tradeNormalWithCoins(Response response, User user, String tradeCardId, Trade toFinishTrade) throws SQLException {
+        Optional<CardBase> toTradeCardOpt = this.repositoryHelper.getCardRepository().getCardById(tradeCardId);
+        if (toTradeCardOpt.isPresent() &&
+                !toTradeCardOpt.get().isInTradeInvolved() &&
+                this.doesCardMathDesiredCard(toTradeCardOpt.get(), toFinishTrade) &&
+                !this.repositoryHelper.getDeckRepository().isCardInUserDeck(user.getUsername(), tradeCardId)) {
+
+            Optional<Trade> tradeOpt = this.repositoryHelper.getTradeRepository().finishTrade(toFinishTrade, user, tradeCardId);
+            if (tradeOpt.isPresent()) {
+                Trade finishedTrade = tradeOpt.get();
+                // update user (coins) and set trade users
+                updateCoinsForUsersFromTrade(user, finishedTrade);
+                finishedTrade.setTradedToUser(user);
+                // reset card
+                this.repositoryHelper.getCardRepository().markCardForTrading(finishedTrade.getTradeCard().getId().toString(), false);
+                // remove cards from trade from user stack
+                this.repositoryHelper.getStackRepository().removeCardsFromUserStack(finishedTrade.getTradeUser(), List.of(finishedTrade.getTradeCard()));
+                this.repositoryHelper.getStackRepository().removeCardsFromUserStack(finishedTrade.getTradedToUser(), List.of(finishedTrade.getTradedForCard()));
+                // add new traded cards to user stack
+                this.repositoryHelper.getStackRepository().addCardsToUserStack(finishedTrade.getTradeUser(), List.of(finishedTrade.getTradedForCard()));
+                this.repositoryHelper.getStackRepository().addCardsToUserStack(finishedTrade.getTradedToUser(), List.of(finishedTrade.getTradeCard()));
+
+                // get users
+                getUserForTradeFromDB(finishedTrade);
+                response.setStatus(StatusCodeEnum.SC_200);
+                response.setContent(finishedTrade.toString());
+            }
+        } else {
+            response.setStatus(StatusCodeEnum.SC_400);
+            response.setContent(CARD_NOT_SUITABLE_ERROR_MESSAGE);
+        }
+    }
+
+    private void tradeOnlyCoins(Response response, User user, Trade toFinishTrade) throws SQLException {
+        Optional<Trade> tradeOpt = this.repositoryHelper.getTradeRepository().finishTrade(toFinishTrade, user, null);
+        if (tradeOpt.isPresent()) {
+            Trade finishedTrade = tradeOpt.get();
+            // update user (coins) and set trade users
+            updateCoinsForUsersFromTrade(user, finishedTrade);
+            finishedTrade.setTradedToUser(user);
+
+            // reset card
+            this.repositoryHelper.getCardRepository().markCardForTrading(finishedTrade.getTradeCard().getId().toString(), false);
+
+            // remove cards from trade from user stack
+            this.repositoryHelper.getStackRepository().removeCardsFromUserStack(finishedTrade.getTradeUser(), List.of(finishedTrade.getTradeCard()));
+
+            // add new traded cards to user stack
+            this.repositoryHelper.getStackRepository().addCardsToUserStack(finishedTrade.getTradedToUser(), List.of(finishedTrade.getTradeCard()));
+
+            response.setStatus(StatusCodeEnum.SC_200);
+            response.setContent(finishedTrade.toString());
+        }
+    }
+
+    private void updateCoinsForUsersFromTrade(User tradedToUser, Trade finishedTrade) throws SQLException {
+        tradedToUser.setCoins(tradedToUser.getCoins() - finishedTrade.getDesiredCoins());
+        this.repositoryHelper.getUserRepository().update(tradedToUser);
+        Optional<User> tradeUserOpt = this.repositoryHelper.getUserRepository().getUser(finishedTrade.getTradeUser().getUsername());
+        if (tradeUserOpt.isPresent()) {
+            User tradeUser = tradeUserOpt.get();
+            tradeUser.setCoins(tradeUser.getCoins() + finishedTrade.getDesiredCoins());
+            this.repositoryHelper.getUserRepository().update(tradeUser);
+
+            // set trade user to trade
+            finishedTrade.setTradeUser(tradeUser);
+        }
+    }
+
+    private boolean doesCardMathDesiredCard(CardBase toTradeCard, Trade toFinishTrade) {
+        return toTradeCard.getName().equals(toFinishTrade.getDesiredCard().getName());
+    }
+
+    private void addTrade(Response response, User user) throws SQLException, WrongDesiredCardExpetion {
         if (this.userRequest.getModel() instanceof AddTradeModel) {
             AddTradeModel addTradeModel = (AddTradeModel) this.userRequest.getModel();
             // check if card is already marked
             Optional<CardBase> tradeCardOpt = this.repositoryHelper.getCardRepository().getCardById(addTradeModel.getCardId());
-            if (tradeCardOpt.isPresent() && !tradeCardOpt.get().isInTradeInvolved()) {
+            if (addTradeModel.getDesiredCoins() >= 0 && tradeCardOpt.isPresent() && !tradeCardOpt.get().isInTradeInvolved()) {
                 CardBase tradeCard = this.repositoryHelper.getCardRepository().markCardForTrading(addTradeModel.getCardId(), true);
                 if (!this.repositoryHelper.getDeckRepository().isCardInUserDeck(user.getUsername(), tradeCard.getId().toString())) {
-                    CardsEnum desiredCard;
-                    try {
-                        desiredCard = CardsEnum.valueOf(addTradeModel.getDesiredCardName().toUpperCase());
-                    } catch (IllegalArgumentException ex) {
-                        desiredCard = null;
+                    CardsEnum desiredCard = null;
+                    if (addTradeModel.getDesiredCardName() != null) {
+                        try {
+                            desiredCard = CardsEnum.valueOf(addTradeModel.getDesiredCardName().toUpperCase());
+                        } catch (IllegalArgumentException ex) {
+                            throw new WrongDesiredCardExpetion(addTradeModel.getDesiredCardName());
+                        }
                     }
                     Trade toCreate = Trade.builder()
                             .id(UUID.randomUUID())

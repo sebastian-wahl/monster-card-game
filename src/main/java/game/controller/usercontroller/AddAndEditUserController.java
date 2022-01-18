@@ -64,6 +64,8 @@ public class AddAndEditUserController extends ControllerBase {
                         .displayName(newUserModel.getDisplayName())
                         .bio(newUserModel.getBio())
                         .image(newUserModel.getImage())
+                        .elo(-1)
+                        .coins(-1)
                         .build();
                 Optional<User> userOpt = this.repositoryHelper.getUserRepository().update(newUser);
                 if (userOpt.isPresent()) {

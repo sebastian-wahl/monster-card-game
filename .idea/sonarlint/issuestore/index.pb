@@ -11,8 +11,6 @@ h
 8src/test/java/game/controller/PackageControllerTest.java,0\4\04e78ac694f7671f716771f62a9fd70953543430
 k
 ;src/test/java/game/controller/ScoreboardControllerTest.java,4\0\40ac9af86931df879f7e8e0dae7ebd6722bbe051
-z
-Jsrc/test/java/game/controller/battlecontroller/BattleQueueHandlerTest.java,8\f\8f96a5017e70df8b775e414a5cf30b45909e19b6
 d
 4src/main/java/game/http/models/FinishTradeModel.java,1\f\1f7f877b6efddd5854e7b04d861ba6b2b17f7409
 ]

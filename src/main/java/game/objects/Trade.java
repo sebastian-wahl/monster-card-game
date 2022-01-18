@@ -44,7 +44,7 @@ public class Trade {
     }
 
     private String formatCardName(CardsEnum e) {
-        return e == null ? "No card selected" : "\"" + e.getName() + "\"";
+        return e == null ? "\"No card selected, trades for coins only!\"" : "\"" + e.getName() + "\"";
     }
 
     private String formatNoCard(CardBase c) {

@@ -13,10 +13,10 @@ public class FireWizard extends MonsterCard {
 
     @Override
     /*
-     * Wizard can control Orks, so they are not able to damage them.
+     * Wizard can control Orcs, so they are not able to damage them.
      */
     public FightOutcome attack(CardBase competitor) {
-        if (competitor instanceof Ork) {
+        if (competitor instanceof Orc) {
             return FightOutcome.ATTACKER;
         }
         if (competitor instanceof WaterWitch) {

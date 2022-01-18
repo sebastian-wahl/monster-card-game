@@ -73,8 +73,8 @@ public class CardFactory {
         if (toCreate == CardsEnum.KRAKEN) {
             toReturn = new Knight();
         }
-        if (toCreate == CardsEnum.ORK) {
-            toReturn = new Ork();
+        if (toCreate == CardsEnum.ORC) {
+            toReturn = new Orc();
         }
         if (toCreate == CardsEnum.DARK_BAT) {
             toReturn = new DarkBat();

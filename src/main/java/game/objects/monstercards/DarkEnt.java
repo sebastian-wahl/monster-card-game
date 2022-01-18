@@ -16,7 +16,7 @@ public class DarkEnt extends MonsterCard {
      * The dark ents are so enraged by the orcs and knights that they immediately destroy them in a fight.
      */
     public FightOutcome attack(CardBase competitor) {
-        if (competitor instanceof Ork || competitor instanceof Knight) {
+        if (competitor instanceof Orc || competitor instanceof Knight) {
             return FightOutcome.ATTACKER;
         }
         return super.attack(competitor);

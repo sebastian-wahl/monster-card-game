@@ -218,7 +218,7 @@ public class GameIntegrationTest extends MonsterCardIntegrationTest {
 
         StringBuilder deckIds = new StringBuilder("[");
         for (int i = 0; i < toSetDeckIds.size(); i++) {
-            deckIds.append(toSetDeckIds.get(i));
+            deckIds.append("\"").append(toSetDeckIds.get(i)).append("\"");
             if (i < toSetDeckIds.size() - 1) deckIds.append(", ");
         }
         deckIds.append("]");
@@ -269,7 +269,7 @@ public class GameIntegrationTest extends MonsterCardIntegrationTest {
         assertThat(jsonNode.size()).isGreaterThanOrEqualTo(5);
         int i = 0;
         for (JsonNode objNode : jsonNode) {
-            kienboecDeckIds.add(objNode.get("Card").get("id").asText());
+            kienboecDeckIds.add(objNode.get("Card").get("Id").asText());
             i++;
             if (i == 4) break;
         }
@@ -286,7 +286,7 @@ public class GameIntegrationTest extends MonsterCardIntegrationTest {
         assertThat(jsonNode.size()).isGreaterThanOrEqualTo(5);
         i = 0;
         for (JsonNode objNode : jsonNode) {
-            altenhofDeckIds.add(objNode.get("Card").get("id").asText());
+            altenhofDeckIds.add(objNode.get("Card").get("Id").asText());
             i++;
             if (i == 4) break;
         }

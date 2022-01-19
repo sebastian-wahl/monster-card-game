@@ -65,7 +65,7 @@ public class ConcreteRequest implements Request {
                 break;
             case PACKAGES:
                 // create package
-                if (this.method == HttpMethod.POST && this.url.getUrlSegments().size() == 1) {
+                if (this.method == HttpMethod.POST && !this.body.isEmpty()) {
                     List<CardModel> packageCards = o.readValue(this.body, new TypeReference<List<CardModel>>() {
                     });
                     this.model = PackageModel.builder().packageCards(packageCards).build();

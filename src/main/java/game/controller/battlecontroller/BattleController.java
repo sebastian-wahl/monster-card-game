@@ -19,6 +19,7 @@ public class BattleController extends ControllerBase {
     public BattleController(Request request, RepositoryHelper repositoryHelper, BattleQueueHandler battleQueueHandler) {
         super(request, repositoryHelper);
         this.battleQueueHandler = battleQueueHandler;
+        this.battleQueueHandler.setRepositoryHelper(repositoryHelper);
     }
 
     @Override

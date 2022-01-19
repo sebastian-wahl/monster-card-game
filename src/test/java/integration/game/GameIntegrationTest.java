@@ -267,11 +267,12 @@ public class GameIntegrationTest extends MonsterCardIntegrationTest {
         assertThat(fieldNames.containsAll(GAME_GET_STACK_JSON_NAMES_LIST)).isTrue();
         jsonNode = responseObj.get("Stack");
         assertThat(jsonNode.size()).isGreaterThanOrEqualTo(5);
-        int i = 0;
         for (JsonNode objNode : jsonNode) {
-            kienboecDeckIds.add(objNode.get("Card").get("Id").asText());
-            i++;
-            if (i == 4) break;
+            String cardId = objNode.get("Card").get("Id").asText();
+            if (isNotUsedInTradeIntegrationTest(cardId)) {
+                kienboecDeckIds.add(cardId);
+            }
+            if (kienboecDeckIds.size() == 4) break;
         }
 
         request = getHttpGetRequestSecurityToken("cards", altenhofToken);
@@ -284,12 +285,17 @@ public class GameIntegrationTest extends MonsterCardIntegrationTest {
         assertThat(fieldNames.containsAll(GAME_GET_STACK_JSON_NAMES_LIST)).isTrue();
         jsonNode = responseObj.get("Stack");
         assertThat(jsonNode.size()).isGreaterThanOrEqualTo(5);
-        i = 0;
         for (JsonNode objNode : jsonNode) {
-            altenhofDeckIds.add(objNode.get("Card").get("Id").asText());
-            i++;
-            if (i == 4) break;
+            String cardId = objNode.get("Card").get("Id").asText();
+            if (isNotUsedInTradeIntegrationTest(cardId)) {
+                altenhofDeckIds.add(cardId);
+            }
+            if (altenhofDeckIds.size() == 4) break;
         }
+    }
+
+    private boolean isNotUsedInTradeIntegrationTest(String cardId) {
+        return !cardId.equals("51441205-5966-4c27-9944-5ba43cb25eb9") && !cardId.equals("f4bc8718-0cfa-4156-b2f6-598e634a5b61");
     }
 
     private void buyAdminPackages(ObjectMapper mapper, String kienboecToken, String altenhofToken) throws IOException, InterruptedException {

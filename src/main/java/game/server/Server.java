@@ -32,7 +32,7 @@ public class Server {
                 return;
             }
             this.repositoryHelper = new RepositoryHelper();
-            this.battleQueueHandler = new BattleQueueHandler(new RepositoryHelper());
+            this.battleQueueHandler = new BattleQueueHandler();
             while (listening) {
                 System.out.println("Listening on localhost:" + PORT);
                 Socket client = serverSocket.accept();

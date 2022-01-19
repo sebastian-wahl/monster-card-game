@@ -10,6 +10,7 @@ import game.objects.CardBase;
 import game.objects.Deck;
 import game.objects.User;
 import game.objects.enums.FightOutcome;
+import lombok.Setter;
 import lombok.Synchronized;
 
 import java.sql.SQLException;
@@ -19,8 +20,14 @@ import java.util.concurrent.CompletableFuture;
 public class BattleQueueHandler {
 
     private static final String ALREADY_QUEUED_MESSAGE = "User is already queued in another connection.";
-    private final RepositoryHelper repositoryHelper;
+    @Setter
+    private RepositoryHelper repositoryHelper;
     private final Map<String, CompletableFuture<Response>> completableFutureMap;
+
+
+    public BattleQueueHandler() {
+        this(null);
+    }
 
     public BattleQueueHandler(RepositoryHelper repositoryHelper) {
         this.repositoryHelper = repositoryHelper;

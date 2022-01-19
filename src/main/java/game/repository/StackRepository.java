@@ -82,6 +82,11 @@ public class StackRepository extends RepositoryBase {
         return userOpt.map(userobj -> user.getStack().containsAll(cardBases)).orElse(false);
     }
 
+    public boolean areCardsWithIdOwnedByUser(User user, List<String> cardIds) throws SQLException {
+        Optional<User> userOpt = this.getUserStack(user);
+        return userOpt.map(userobj -> user.getStack().containsAllStringId(cardIds)).orElse(false);
+    }
+
 
     public Optional<User> getUserStack(User user) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(GET_STACK_SQL)) {

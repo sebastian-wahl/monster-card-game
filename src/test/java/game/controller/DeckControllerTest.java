@@ -11,7 +11,9 @@ import game.objects.Deck;
 import game.objects.User;
 import game.objects.monstercards.*;
 import game.objects.spellcards.WaterSpell;
+import game.repository.CardRepository;
 import game.repository.DeckRepository;
+import game.repository.StackRepository;
 import game.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,6 +39,12 @@ import static org.mockito.Mockito.lenient;
 class DeckControllerTest {
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private CardRepository cardRepository;
+
+    @Mock
+    private StackRepository stackRepository;
 
     @Mock
     private DeckRepository deckRepository;
@@ -76,10 +84,14 @@ class DeckControllerTest {
         try {
             lenient().when(this.repositoryHelper.getUserRepository()).thenReturn(this.userRepository);
             lenient().when(this.repositoryHelper.getDeckRepository()).thenReturn(this.deckRepository);
+            lenient().when(this.repositoryHelper.getCardRepository()).thenReturn(this.cardRepository);
+            lenient().when(this.repositoryHelper.getStackRepository()).thenReturn(this.stackRepository);
             lenient().when(this.userRequest.getAuthorizationToken()).thenReturn(SECURITY_TOKEN);
             lenient().when(this.userRequest.getUrl()).thenReturn(new ConcreteUrl("deck"));
             lenient().when(this.repositoryHelper.getUserRepository().checkTokenAndGetUser(SECURITY_TOKEN)).thenReturn(Optional.of(user1));
             lenient().when(this.deckRepository.getDeckByUsername(USERNAME_1)).thenReturn(this.deckSet);
+            lenient().when(this.cardRepository.getCardsById(any())).thenReturn(deckNew.getCards());
+            lenient().when(this.stackRepository.areCardsWithIdOwnedByUser(any(), any())).thenReturn(true);
             this.deckController = new DeckController(userRequest, repositoryHelper);
         } catch (SQLException e) {
             fail("An exception was thrown during the setUp: " + e.getMessage());

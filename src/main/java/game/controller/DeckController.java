@@ -7,6 +7,7 @@ import game.http.models.DeckModel;
 import game.http.request.Request;
 import game.http.response.ConcreteResponse;
 import game.http.response.Response;
+import game.objects.CardBase;
 import game.objects.Deck;
 import game.objects.User;
 
@@ -19,6 +20,7 @@ public class DeckController extends ControllerBase {
 
     private static final String FORMAT_PARAMETER = "format";
     private static final String FORMAT_PARAMETER_VALUE = "plain";
+    private static final String CARD_NOT_IN_STACK_MESSAGE = "It looks like some Cards are involved in a trade or not present in your Card Stack.";
 
     public DeckController(Request request, RepositoryHelper repositoryHelper) {
         super(request, repositoryHelper);
@@ -45,13 +47,22 @@ public class DeckController extends ControllerBase {
 
     private void setDeck(Response response, Optional<User> userOpt) throws SQLException {
         if (userRequest.getModel() instanceof DeckModel) {
-            userOpt = this.repositoryHelper.getDeckRepository().setUserDeck(userOpt.get(), (DeckModel) userRequest.getModel());
-            if (userOpt.isPresent()) {
-                response.setStatus(StatusCodeEnum.SC_200);
-                response.setContent(userOpt.get().getDeck().toString());
+            DeckModel deckModel = (DeckModel) userRequest.getModel();
+            // check if all cards are in user stack and in no trade involved
+            boolean allNotInTrade = this.repositoryHelper.getCardRepository().getCardsById(deckModel.getDeckIds())
+                    .stream().map(CardBase::isInTradeInvolved).allMatch(aBoolean -> aBoolean == false);
+            if (allNotInTrade && this.repositoryHelper.getStackRepository().areCardsWithIdOwnedByUser(userOpt.get(), deckModel.getDeckIds())) {
+                userOpt = this.repositoryHelper.getDeckRepository().setUserDeck(userOpt.get(), deckModel);
+                if (userOpt.isPresent()) {
+                    response.setStatus(StatusCodeEnum.SC_200);
+                    response.setContent(userOpt.get().getDeck().toString());
+                } else {
+                    response.setStatus(StatusCodeEnum.SC_400);
+                    response.setContent(TOO_MANY_CARDS_FOR_DECK_ERROR_MESSAGE);
+                }
             } else {
                 response.setStatus(StatusCodeEnum.SC_400);
-                response.setContent(TOO_MANY_CARDS_FOR_DECK_ERROR_MESSAGE);
+                response.setContent(CARD_NOT_IN_STACK_MESSAGE);
             }
         } else {
             response.setStatus(StatusCodeEnum.SC_400);

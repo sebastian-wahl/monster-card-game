@@ -294,6 +294,9 @@ public class GameIntegrationTest extends MonsterCardIntegrationTest {
         }
     }
 
+    /**
+     * Those two ids are used in the Trade integration test, so the cards should not be used in the deck
+     */
     private boolean isNotUsedInTradeIntegrationTest(String cardId) {
         return !cardId.equals("51441205-5966-4c27-9944-5ba43cb25eb9") && !cardId.equals("f4bc8718-0cfa-4156-b2f6-598e634a5b61");
     }
@@ -340,7 +343,7 @@ public class GameIntegrationTest extends MonsterCardIntegrationTest {
         requestBody = "[{\"Id\":\"" + UUID.randomUUID() + "\", \"Name\":\"Grey Goblin\", \"Damage\": 10.0}, " +
                 "{\"Id\":\"" + UUID.randomUUID() + "\", \"Name\":\"Dragon\", \"Damage\": 50.0}, " +
                 "{\"Id\":\"" + UUID.randomUUID() + "\", \"Name\":\"Water Spell\", \"Damage\": 20.0}, " +
-                "{\"Id\":\"" + UUID.randomUUID() + "\", \"Name\":\"Ork\", \"Damage\": 45.0}, " +
+                "{\"Id\":\"" + UUID.randomUUID() + "\", \"Name\":\"Orc\", \"Damage\": 45.0}, " +
                 "{\"Id\":\"" + UUID.randomUUID() + "\", \"Name\":\"Fire Spell\", \"Damage\": 25.0}]";
         request = getHttpPostRequest("packages?add_admin_package=true", List.of("Content-Type", "application/json", "Authorization", "admin-token-1234"),
                 requestBody);
@@ -357,7 +360,7 @@ public class GameIntegrationTest extends MonsterCardIntegrationTest {
 
 
         requestBody = "[{\"Id\":\"" + UUID.randomUUID() + "\", \"Name\":\"Kraken\", \"Damage\": 10.0}, " +
-                "{\"Id\":\"" + UUID.randomUUID() + "\", \"Name\":\"Ork\", \"Damage\": 50.0}, " +
+                "{\"Id\":\"" + UUID.randomUUID() + "\", \"Name\":\"Orc\", \"Damage\": 50.0}, " +
                 "{\"Id\":\"" + UUID.randomUUID() + "\", \"Name\":\"Water Spell\", \"Damage\": 20.0}, " +
                 "{\"Id\":\"" + UUID.randomUUID() + "\", \"Name\":\"Speed Spell\", \"Damage\": 45.0}, " +
                 "{\"Id\":\"" + UUID.randomUUID() + "\", \"Name\":\"Dark Spell\", \"Damage\": 25.0}]";

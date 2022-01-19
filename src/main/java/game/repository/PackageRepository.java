@@ -37,8 +37,11 @@ public class PackageRepository extends RepositoryBase {
     public int getFirstAvailablePackageNumber() throws SQLException {
         try (PreparedStatement preparedStatement = connection.prepareStatement(GET_FIST_NOT_BOUGHT_PACKAGE_SQL)) {
             try (ResultSet rs = preparedStatement.executeQuery()) {
-                rs.next();
-                return rs.getInt(1);
+                if (rs.next()) {
+                    return rs.getInt(1);
+                } else {
+                    return -1;
+                }
             }
         }
     }

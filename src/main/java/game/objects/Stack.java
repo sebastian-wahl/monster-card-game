@@ -2,6 +2,7 @@ package game.objects;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Stack {
     private List<CardBase> stack;
@@ -32,6 +33,14 @@ public class Stack {
 
     public boolean containsAll(List<CardBase> cards) {
         return this.stack.containsAll(cards);
+    }
+
+    public boolean containsAllStringId(List<String> cardIds) {
+        return this.stack.stream().map(cardBase -> cardBase.getId().toString()).collect(Collectors.toList()).containsAll(cardIds);
+    }
+
+    public void removeAllCardsThatAreInvolvedInTrade() {
+        this.stack = this.stack.stream().filter(cardBase -> !cardBase.isInTradeInvolved()).collect(Collectors.toList());
     }
 
     @Override

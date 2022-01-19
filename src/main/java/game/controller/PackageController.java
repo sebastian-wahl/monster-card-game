@@ -45,16 +45,12 @@ public class PackageController extends ControllerBase {
             if (userOpt.isPresent()) {
                 User user = userOpt.get();
                 if (user.getCoins() - Package.PACKAGE_COST >= 0) {
-                    user.setCoins(user.getCoins() - Package.PACKAGE_COST);
-                    Optional<User> userUpdateOpt = this.repositoryHelper.getUserRepository().update(user);
-                    if (userUpdateOpt.isPresent()) {
-                        if (this.hasBuyAdminPackageUrlParameter()) {
-                            // buy admin created package
-                            this.buyAdminPackage(response, userUpdateOpt.get());
-                        } else {
-                            // buy "random" package
-                            this.buyRandomPackage(response, userUpdateOpt.get());
-                        }
+                    if (this.hasBuyAdminPackageUrlParameter()) {
+                        // buy admin created package
+                        this.buyAdminPackage(response, user);
+                    } else {
+                        // buy "random" package
+                        this.buyRandomPackage(response, user);
                     }
                 } else {
                     response.setContent(NOT_ENOUGH_COINS_MESSAGE);
@@ -119,11 +115,7 @@ public class PackageController extends ControllerBase {
             if (!cards.isEmpty()) {
                 if (this.repositoryHelper.getCardRepository().removeCardsFromAdminPackage(freePackageNumber) && this.repositoryHelper.getPackageRepository().setAdminPackageToBought(freePackageNumber)) {
                     Package p = new Package(cards);
-                    Optional<User> stackUserOpt = this.repositoryHelper.getStackRepository().addCardsToUserStack(user, cards);
-                    if (stackUserOpt.isPresent()) {
-                        response.setStatus(StatusCodeEnum.SC_200);
-                        response.setContent(p.toString());
-                    }
+                    addPackageToStackUpdateUserCoinsAndSetResult(response, user, p);
                 } else {
                     response.setStatus(StatusCodeEnum.SC_500);
                 }
@@ -139,8 +131,15 @@ public class PackageController extends ControllerBase {
         // set response to error and change if everything worked out
         response.setStatus(StatusCodeEnum.SC_500);
         this.repositoryHelper.getCardRepository().addCards(pack.cards);
+        addPackageToStackUpdateUserCoinsAndSetResult(response, user, pack);
+    }
+
+    private void addPackageToStackUpdateUserCoinsAndSetResult(Response response, User user, Package pack) throws SQLException {
         Optional<User> userAddStackOpt = this.repositoryHelper.getStackRepository().addCardsToUserStack(user, pack);
-        if (userAddStackOpt.isPresent()) {
+        // update user coins
+        user.setCoins(user.getCoins() - Package.PACKAGE_COST);
+        Optional<User> userUpdateOpt = this.repositoryHelper.getUserRepository().update(user);
+        if (userAddStackOpt.isPresent() && userUpdateOpt.isPresent()) {
             response.setStatus(StatusCodeEnum.SC_200);
             response.setContent(pack.toString());
         }

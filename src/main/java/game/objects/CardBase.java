@@ -87,7 +87,7 @@ public abstract class CardBase implements Comparable<CardBase> {
         if (this == o) return true;
         if (!(o instanceof CardBase)) return false;
         CardBase cardBase = (CardBase) o;
-        return Objects.equals(name, cardBase.name);
+        return Objects.equals(id.toString(), cardBase.id.toString());
     }
 
     @Override

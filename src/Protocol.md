@@ -43,7 +43,7 @@ Begonnen habe ich mit der Implementierung/Erstellung der Card Klassen. Dabei hab
 Karten eine Subklasse erstellt, ebenfalls abstrakt. Eine Klasse `SpellCard` und eine Klasse `MonsterCard`. Die
 Kampflogik schlängelt sich durch beide Klassen durch. Die Basislogik ist in der `CardBase` Klasse implementiert und bei
 gewissen "specialities" (`Knight` drowns when hit with `WaterSpell`, usw...) wurde die `attack` Methode in den
-jeweiligen Klassen überschrieben.
+jeweiligen Klassen überschrieben und dementsprechend adaptiert.
 
 Dann habe ich zu dieser `attack` Methode einige Tests geschrieben, um die Funktionalität zu überprüfen.
 
@@ -63,12 +63,13 @@ Für alle Funktionen bzw. "URL Paths" habe ich einen Controller erstellt. Jeder 
 abstrakten `ControllerBase` Klasse, welche die Methode `doWorkIntern` vorgibt. Im `ClientGameRunner` wird dann der
 jeweilige Controller abhängig von dem Path ausgewählt und die `doWork` Methode vom `ControllerBase` aufgerufen. In
 dieser Methode wird eine Postgresql Transaction gestartet und nach dem erfolgreichen Ausführen der `doWorkIntern`
-Methode (aus der jeweiligen Implementierung) Committed. Im Fall das ein Fehler auftritt und aufgefangen wird, wird ein
-Rollback durchgeführt welcher den Stand der Datenbank wieder auf den vor Beginn der Transaction zurücksetzt. Dies ist
-sehr hilfreich um nicht den Fehler zu begehen bei einer Exception/Fehler relativ weit vorgeschritten in einem
-Bearbeitungsprozess einer Funktion wie z.B. dem Tauschen von Karten abzubrechen und gleichzeitig die ersten Änderungen
-bereits in der Datenbank zu persistieren. Wenn dann sozusagen die ganze Funktion fehlerfrei abläuft, wird schlussendlich
-am Ende der `doWork` methode die Transaktion beendet und alle Änderungen in die Datenbank geschrieben.
+Methode (aus der jeweiligen Implementierung) alle Änderungen committed. Im Fall das ein Fehler auftritt und aufgefangen
+wird, wird ein Rollback durchgeführt welcher den Stand der Datenbank wieder auf den vor Beginn der Transaction
+zurücksetzt. Dies ist sehr hilfreich um nicht den Fehler zu begehen bei einer Exception/Fehler relativ weit
+vorgeschritten in einem Bearbeitungsprozess einer Funktion, wie z.B. dem Tauschen von Karten, abzubrechen und
+gleichzeitig die ersten Änderungen bereits in der Datenbank zu persistieren. Wenn dann sozusagen die ganze Funktion
+fehlerfrei abläuft, wird schlussendlich am Ende der `doWork` methode die Transaktion beendet und alle Änderungen in die
+Datenbank geschrieben.
 
 ### URL Paths and corresponding Controllers:
 
@@ -85,10 +86,10 @@ am Ende der `doWork` methode die Transaktion beendet und alle Änderungen in die
 Dann habe ich eine postgresql Datenbank in einem Docker image aufgesetzt.
 
 Über die Repository Klassen (Base class: `RepositoryBase`) greife ich auf die Datenbank zu und lese oder schreibe
-mittels PreparedStatements darauf. Die PreparedStatements verhindern das durch userinput eine SQL injection zustande
+mittels PreparedStatements darauf. Die PreparedStatements verhindern das durch User input eine SQL injection zustande
 kommt. Um die Benutzung der Repositories zu erleichtern, habe ich die Klasse `RepositoryHelper` erstellt, die jeweils
-alle Repository beinhaltet und ein einziges Mal im `ClientGameRunner` erstellt wird und jeweils an alle Controllern
-weitergegeben wird. Somit hat man alle Repos gebündelt und kann sich über getter das jeweils gerade benötigte holen.
+alle Repository beinhaltet und für jeden `ClientGameRunner` erstellt wird und jeweils an alle Controllern weitergegeben
+wird. Somit hat man alle Repos gebündelt und kann sich über getter das jeweils gerade benötigte holen.
 
 Zu Beginn jeder Operation in einem Controller wird in der `doWorkIntern` methode als all erstes die
 Datenbank `Connection` gesetzt und am Ende der Methode geschlossen.
@@ -101,10 +102,16 @@ den `BattleQueueHandler`
 weitergegeben, der sofort ein `CompletableFuture<Response>` zurückgeliefert welches dann ein Result liefert, wenn das
 Battle dieses Users abgearbeitet wurde. Der `BattleQueueHandler` checkt ständig, ob gerade zwei User in der Queue sind
 und verknüpft diese miteinander und lässt diese kämpfen. Sobald der Kampf zwischen zwei Usern gestartet wird, werden
-beide aus der "Queue" entfernt. Am Ende des Kampfes wird die `CompletableFuture` die bereits an den
-jeweiligen `BattleController` des `ClientGameRunner` completed und die Response kann dann geschickt werden.
+beide aus der "Queue" entfernt. Am Ende des Kampfes wird die `CompletableFuture`, die bereits an den
+jeweiligen `BattleController` des `ClientGameRunner` returned wurde, completed und die Response kann dann an den User
+geschickt werden.
 
 ### ER Database Diagram
+
+Bei der Datenbank habe ich geschaut, dass ich so gut wie nur die Sachen persistiere, die auch notwendig sind. Z.B. habe
+ich eine eigene Tabelle `admin_pakage` erstellt in denen lediglich die `package_number` und eine `is_bought` Flag
+gespeichert werden. In der `card` Tabelle wird dann, falls eine Card einem Admin Package zugeordnet wird
+die `package_number` dran gehängt.
 
 ![img.png](main/resources/img/img.png)
 
@@ -130,9 +137,14 @@ und Stärken der Monster als Beschreibung dieser gewählt damit Ergebnisse leich
 daraus schon schließen lässt gibt es zwei Möglichkeiten Packages zu kaufen. Entweder vom Admin vordefinierte, oder vom
 Zufall erstellte Packs.
 
-Weiters habe ich die Möglichkeit eingebaut bei einem Tausch Karten nur gegen Coins oder gegen eine andere Karte sowie
+Weiters habe ich die Möglichkeit eingebaut bei einem Tausch Karten nur gegen Coins oder gegen eine andere Karte und
 Coins zu tauschen. Trades können nach username oder nach der "bereits abgeschlossen" Flag gefiltert werden, um die
 Übersicht zu verbessern. Es ist ebenso möglich sich seinen Tauschverlauf auszugeben.
+
+Auch habe ich einige weitere URL Parameter für spezielle Rückgabe einiger Datensätze hinzugefügt. Einerseits beim Stack,
+das nur Cards zurückgegeben werden die wahlweise nicht im deck oder auch nicht in einem Trade verwickelt sind. Auch beim
+Package gibt es ja die Möglichkeit zwischen Admin Package und Random Packages zu wählen, jeweils wieder mit URL
+Parametern.
 
 ## Lessons Learned
 
@@ -146,4 +158,5 @@ sparen und nicht öfters den gleichen Code schreiben zu müssen. Ich habe mehrma
 Ich habe auch eine Zeit lang gebraucht um mit SQL transactions zu arbeiten, die mir das händische testen enorm
 erleichterten.
 
-Ebenso habe ich viel Zeit damit verbracht bessere Lösungen für fertige Funktionen zu suchen.
+Ebenso habe ich viel Zeit damit verbracht bessere Lösungen für fertige Funktionen zu suchen, das war beispielsweise bei
+der Queue für das Battle.

@@ -5,8 +5,6 @@
 0src/main/java/game/http/models/PackageModel.java,7\e\7e6c39ad965ca5b03028694eb58a7f1b37b2e5bf
 j
 :src/test/java/game/controller/LoginUserControllerTest.java,1\7\1731fcc05ae8bfa370d7c2501cbdba7e5110807c
-f
-6src/test/java/game/controller/StackControllerTest.java,1\0\106ec59e86a3ae6e652f1d61ec1da9f990876e0a
 h
 8src/test/java/game/controller/PackageControllerTest.java,0\4\04e78ac694f7671f716771f62a9fd70953543430
 k
@@ -15,9 +13,5 @@ d
 4src/main/java/game/http/models/FinishTradeModel.java,1\f\1f7f877b6efddd5854e7b04d861ba6b2b17f7409
 ]
 -src/main/java/game/http/models/DeckModel.java,e\7\e790cf3076c2effb87c7e56972e68e2da2cb37eb
-?
-src/Protocol.md,1\b\1b64da0b8c85c174736abae9cb03018cb949b182
-a
-1src/main/java/game/controller/ControllerBase.java,8\5\854caa339547a7929b7dd477b364c45d51cb7edd
 h
 8src/test/java/integration/users/UserIntegrationTest.java,5\f\5f0f6b8d86aec3868c0687736b97cc6e404fec67

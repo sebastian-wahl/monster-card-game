@@ -12,6 +12,8 @@ public class CardRepository extends RepositoryBase {
 
     private static final String ADD_CARD_SQL = "INSERT INTO card (id, name, damage, admin_package_number) VALUES (?, ?, ?, ?);";
     private static final String GET_CARD_WITH_PACKAGE_NUMBER_SQL = "SELECT * FROM card WHERE admin_package_number = ?;";
+    private static final String GET_CARDS_BY_ID_START_SQL = "SELECT * FROM card WHERE";
+    private static final String GET_CARDS_BY_ID_TEMP_SQL = "id = ?";
     private static final String REMOVE_CARDS_FROM_ADMIN_PACKAGE_SQL = "UPDATE card SET admin_package_number = NULL where admin_package_number = ?;";
 
     private static final String UPDATE_CARD_FOR_TRADING_SQL = "UPDATE card SET involved_in_trade = ? WHERE id = ? RETURNING *";
@@ -46,6 +48,18 @@ public class CardRepository extends RepositoryBase {
                 statement.setNull(4, Types.INTEGER);
             }
             statement.executeUpdate();
+        }
+    }
+
+    public List<CardBase> getCardsById(List<String> cardId) throws SQLException {
+        String query = GET_CARDS_BY_ID_START_SQL + " " + (GET_CARDS_BY_ID_TEMP_SQL + " OR ").repeat(cardId.size() - 1) + GET_CARDS_BY_ID_TEMP_SQL;
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            for (int i = 0; i < cardId.size(); i++) {
+                statement.setString(i + 1, cardId.get(i));
+            }
+            try (ResultSet rs = statement.executeQuery()) {
+                return this.getCardsFromResultSet(rs);
+            }
         }
     }
 

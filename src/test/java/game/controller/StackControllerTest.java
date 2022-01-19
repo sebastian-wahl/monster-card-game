@@ -3,6 +3,7 @@ package game.controller;
 import game.helper.RepositoryHelper;
 import game.http.request.Request;
 import game.http.response.Response;
+import game.http.url.ConcreteUrl;
 import game.objects.Stack;
 import game.objects.User;
 import game.objects.monstercards.*;
@@ -71,6 +72,7 @@ class StackControllerTest {
             lenient().when(this.userRequest.getAuthorizationToken()).thenReturn(SECURITY_TOKEN);
             lenient().when(this.userRepository.checkTokenAndGetUser(SECURITY_TOKEN)).thenReturn(Optional.of(user1));
             lenient().when(this.stackRepository.getUserStack(user1)).thenReturn(Optional.of(user1));
+            lenient().when(this.userRequest.getUrl()).thenReturn(new ConcreteUrl("stack"));
             this.stackController = new StackController(this.userRequest, repositoryHelper);
         } catch (SQLException e) {
             fail("An exception was thrown during the setUp: " + e.getMessage());

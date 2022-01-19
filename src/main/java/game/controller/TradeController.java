@@ -226,16 +226,16 @@ public class TradeController extends ControllerBase {
             // check if card is already marked
             Optional<CardBase> tradeCardOpt = this.repositoryHelper.getCardRepository().getCardById(addTradeModel.getCardId());
             if (addTradeModel.getDesiredCoins() >= 0 && tradeCardOpt.isPresent() && !tradeCardOpt.get().isInTradeInvolved()) {
+                CardsEnum desiredCard = null;
+                if (addTradeModel.getDesiredCardName() != null) {
+                    try {
+                        desiredCard = CardsEnum.valueOf(addTradeModel.getDesiredCardName().toUpperCase());
+                    } catch (IllegalArgumentException ex) {
+                        throw new WrongDesiredCardExpetion(addTradeModel.getDesiredCardName());
+                    }
+                }
                 CardBase tradeCard = this.repositoryHelper.getCardRepository().markCardForTrading(addTradeModel.getCardId(), true);
                 if (!this.repositoryHelper.getDeckRepository().isCardInUserDeck(user.getUsername(), tradeCard.getId().toString())) {
-                    CardsEnum desiredCard = null;
-                    if (addTradeModel.getDesiredCardName() != null) {
-                        try {
-                            desiredCard = CardsEnum.valueOf(addTradeModel.getDesiredCardName().toUpperCase());
-                        } catch (IllegalArgumentException ex) {
-                            throw new WrongDesiredCardExpetion(addTradeModel.getDesiredCardName());
-                        }
-                    }
                     Trade toCreate = Trade.builder()
                             .id(UUID.randomUUID())
                             .tradeUser(user)
